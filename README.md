@@ -33,7 +33,7 @@ cd frontend
 npm install
 npm run dev
 ```
-Accessible sur : http://localhost:3000 \
+Accessible sur : http://localhost:3000 
 
 
 ## 3️⃣ Lancement du Backend
@@ -43,7 +43,7 @@ cd backend
 npm install
 npm run dev
 ```
-Accessible sur : http://localhost:3001 \
+Accessible sur : http://localhost:3001 
 
 ## ⚙️ Configuration des variables d’environnement
 
@@ -57,7 +57,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 Backend — **backend/.env**
 
 ```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/eduflow
+DATABASE_URL=postgresql://eduflow:eduflow_password@localhost:5432/eduflow
 JWT_SECRET=supersecret
 ```
 
