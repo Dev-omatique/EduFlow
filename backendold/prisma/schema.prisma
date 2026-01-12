@@ -129,37 +129,37 @@ model PenaltyType {
   @@map("penalty_type")
 }
 
-model User {
-  id        Int       @id @default(autoincrement()) @map("Id_users")
-  username  String
-  password  String
-  email     String    @unique
-  firstName String?   @map("first_name")
-  lastName  String?   @map("last_name")
-  birthDate DateTime? @map("birth_date")
-  address   String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  model User {
+    id        Int       @id @default(autoincrement()) @map("Id_users")
+    username  String
+    password  String
+    email     String    @unique
+    firstName String?   @map("first_name")
+    lastName  String?   @map("last_name")
+    birthDate DateTime? @map("birth_date")
+    address   String?
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
 
-  classId Int? @map("Id_classes")
-  roleId  Int  @map("Id_role")
+    classId Int? @map("Id_classes")
+    roleId  Int  @map("Id_role")
 
-  class Class? @relation(fields: [classId], references: [id])
-  role  Role   @relation(fields: [roleId], references: [id])
+    class Class? @relation(fields: [classId], references: [id])
+    role  Role   @relation(fields: [roleId], references: [id])
 
-  notes                BlockNote[]
-  exams                Exam[]             @relation("TeacherExams")
-  grades               Grade[]
-  penaltiesStudent     Penalty[]          @relation("StudentPenalty")
-  penaltiesResponsible Penalty[]          @relation("ResponsiblePenalty")
-  attendance           Attendance[]
-  news                 News[]
-  principalTeachers    PrincipalTeacher[]
-  parentLinks          ParentStudent[]    @relation("Parent")
-  studentLinks         ParentStudent[]    @relation("Student")
-  taughtCourses        Course[]           @relation("TeacherCourses")
+    notes                BlockNote[]
+    exams                Exam[]             @relation("TeacherExams")
+    grades               Grade[]
+    penaltiesStudent     Penalty[]          @relation("StudentPenalty")
+    penaltiesResponsible Penalty[]          @relation("ResponsiblePenalty")
+    attendance           Attendance[]
+    news                 News[]
+    principalTeachers    PrincipalTeacher[]
+    parentLinks          ParentStudent[]    @relation("Parent")
+    studentLinks         ParentStudent[]    @relation("Student")
+    taughtCourses        Course[]           @relation("TeacherCourses")
 
-  @@map("users")
+    @@map("users")
 }
 
 model PrincipalTeacher {
