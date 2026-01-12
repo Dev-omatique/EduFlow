@@ -30,7 +30,7 @@ L'architecture repose sur des technologies modernes pour garantir performance et
 ### 2️⃣ Lancement du Frontend
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 Accessible sur : http://localhost:3000 
@@ -40,7 +40,7 @@ Accessible sur : http://localhost:3000
 
 ```bash
 cd backend
-npm install
+npm ci
 npm run dev
 ```
 Accessible sur : http://localhost:3001 
