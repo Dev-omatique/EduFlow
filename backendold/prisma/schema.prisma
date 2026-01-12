@@ -1,0 +1,345 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// generator client {
+//   provider = "prisma-client"
+//   output   = "../generated/prisma"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Role {
+  id        Int      @id @default(autoincrement()) @map("Id_role")
+  role      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Class {
+  id         Int       @id @default(autoincrement()) @map("Id_classes")
+  name       String?
+  schoolYear DateTime? @map("school_year")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  users             User[]
+  principalTeachers PrincipalTeacher[]
+  exams             Exam[]
+  courses           Course[]
+
+  @@map("classes")
+}
+
+model Subject {
+  id        Int      @id @default(autoincrement()) @map("Id_subject")
+  type      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  exams   Exam[]
+  courses Course[]
+
+  @@map("subject")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement()) @map("Id_permission")
+  code        String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model GradesStatus {
+  id          Int      @id @default(autoincrement()) @map("Id_grades_status")
+  status      String   @unique
+  shortStatus String   @unique @map("short_status")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  grades Grade[]
+
+  @@map("grades_status")
+}
+
+model AttendanceStatus {
+  id        Int      @id @default(autoincrement()) @map("Id_attendance_status")
+  label     String?
+  shortCode String?  @map("short_code")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  attendance Attendance[]
+
+  @@map("attendance_status")
+}
+
+model ParentType {
+  id             Int      @id @default(autoincrement()) @map("Id_parent_type")
+  representative String   @unique
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  parentStudents ParentStudent[]
+
+  @@map("parent_type")
+}
+
+model RoomType {
+  id        Int      @id @default(autoincrement()) @map("Id_room_type")
+  type      String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  rooms Room[]
+
+  @@map("room_type")
+}
+
+model PenaltyType {
+  id        Int      @id @default(autoincrement()) @map("Id_penalty_type")
+  reason    String   @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  penalties Penalty[]
+
+  @@map("penalty_type")
+}
+
+model User {
+  id        Int       @id @default(autoincrement()) @map("Id_users")
+  username  String
+  password  String
+  email     String    @unique
+  firstName String?   @map("first_name")
+  lastName  String?   @map("last_name")
+  birthDate DateTime? @map("birth_date")
+  address   String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  classId Int? @map("Id_classes")
+  roleId  Int  @map("Id_role")
+
+  class Class? @relation(fields: [classId], references: [id])
+  role  Role   @relation(fields: [roleId], references: [id])
+
+  notes                BlockNote[]
+  exams                Exam[]             @relation("TeacherExams")
+  grades               Grade[]
+  penaltiesStudent     Penalty[]          @relation("StudentPenalty")
+  penaltiesResponsible Penalty[]          @relation("ResponsiblePenalty")
+  attendance           Attendance[]
+  news                 News[]
+  principalTeachers    PrincipalTeacher[]
+  parentLinks          ParentStudent[]    @relation("Parent")
+  studentLinks         ParentStudent[]    @relation("Student")
+  taughtCourses        Course[]           @relation("TeacherCourses")
+
+  @@map("users")
+}
+
+model PrincipalTeacher {
+  id        Int      @id @default(autoincrement()) @map("Id_principal_teacher")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  classId   Int @map("Id_classes")
+  teacherId Int
+
+  class   Class @relation(fields: [classId], references: [id])
+  teacher User  @relation(fields: [teacherId], references: [id])
+
+  @@map("principal_teacher")
+}
+
+model BlockNote {
+  id          Int      @id @default(autoincrement()) @map("Id_note_pad")
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userId Int  @map("Id_users")
+  user   User @relation(fields: [userId], references: [id])
+
+  @@map("block_note")
+}
+
+model Exam {
+  id          Int       @id @default(autoincrement()) @map("Id_exams")
+  title       String?
+  description String?
+  dueDate     DateTime? @map("due_date")
+  maxGrades   Decimal?  @map("max_grades")
+  coefficient Int?
+  isGraded    Boolean?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  subjectId Int @map("Id_subject")
+  teacherId Int
+  classId   Int @map("Id_classes")
+
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation("TeacherExams", fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+
+  grades Grade[]
+
+  @@map("exams")
+}
+
+model Grade {
+  id        Int      @id @default(autoincrement()) @map("Id_grades")
+  grades    Decimal?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  studentId      Int @map("student_id")
+  examId         Int @map("Id_exams")
+  gradesStatusId Int @map("Id_grades_status")
+
+  student User         @relation(fields: [studentId], references: [id])
+  exam    Exam         @relation(fields: [examId], references: [id])
+  status  GradesStatus @relation(fields: [gradesStatusId], references: [id])
+
+  @@map("grades")
+}
+
+model Room {
+  id        Int      @id @default(autoincrement()) @map("Id_room")
+  name      String   @unique
+  capacity  Int
+  location  String?
+  floor     Int      @map("floor_number")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  roomTypeId Int      @map("Id_room_type")
+  roomType   RoomType @relation(fields: [roomTypeId], references: [id])
+
+  courses Course[]
+
+  @@map("rooms")
+}
+
+model News {
+  id          Int      @id @default(autoincrement()) @map("Id_news")
+  title       String?
+  description String?
+  file        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  responsibleId Int  @map("reponsible_id")
+  responsible   User @relation(fields: [responsibleId], references: [id])
+
+  @@map("news")
+}
+
+model Penalty {
+  id        Int      @id @default(autoincrement()) @map("Id_penalty")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  penaltyTypeId Int @map("Id_penalty_type")
+  studentId     Int
+  responsibleId Int
+
+  type        PenaltyType @relation(fields: [penaltyTypeId], references: [id])
+  student     User        @relation("StudentPenalty", fields: [studentId], references: [id])
+  responsible User        @relation("ResponsiblePenalty", fields: [responsibleId], references: [id])
+
+  @@map("penalty")
+}
+
+model Course {
+  id        Int       @id @default(autoincrement()) @map("Id_courses")
+  startTime DateTime?
+  endTime   DateTime?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  roomId    Int @map("Id_room")
+  subjectId Int @map("Id_subject")
+  teacherId Int @map("teacher_id")
+  classId   Int @map("Id_classes")
+
+  room    Room    @relation(fields: [roomId], references: [id], map: "fk_courses_room")
+  subject Subject @relation(fields: [subjectId], references: [id], map: "fk_courses_subject")
+  teacher User    @relation("TeacherCourses", fields: [teacherId], references: [id], map: "fk_courses_teacher")
+  class   Class   @relation(fields: [classId], references: [id], map: "fk_courses_class")
+
+  attendance Attendance[]
+
+  @@map("courses")
+}
+
+model Attendance {
+  id        Int      @id @default(autoincrement()) @map("Id_attendance")
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  attendanceStatusId Int @map("Id_attendance_status")
+  courseId           Int @map("Id_courses")
+  studentId          Int
+
+  status  AttendanceStatus @relation(fields: [attendanceStatusId], references: [id])
+  course  Course           @relation(fields: [courseId], references: [id])
+  student User             @relation(fields: [studentId], references: [id])
+
+  @@map("attendance")
+}
+
+model RolePermission {
+  roleId       Int      @map("Id_role")
+  permissionId Int      @map("Id_permission")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("role_permission")
+}
+
+model ParentStudent {
+  studentId    Int
+  parentId     Int
+  parentTypeId Int      @map("Id_parent_type")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  student    User       @relation("Student", fields: [studentId], references: [id])
+  parent     User       @relation("Parent", fields: [parentId], references: [id])
+  parentType ParentType @relation(fields: [parentTypeId], references: [id])
+
+  @@id([studentId, parentId, parentTypeId])
+  @@map("parent_student")
+}
