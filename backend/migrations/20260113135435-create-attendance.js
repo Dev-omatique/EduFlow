@@ -1,6 +1,5 @@
 'use strict';
-/** @type {import('sequelize-cli').Migration} */
-module.exports = {
+export default {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Attendances', {
       id: {
@@ -15,7 +14,7 @@ module.exports = {
       attendanceStatusId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "AttendanceStatus",
+          model: "AttendanceStatuses",
           key: "id"
         }
       },
