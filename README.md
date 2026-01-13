@@ -13,7 +13,7 @@ L'architecture repose sur des technologies modernes pour garantir performance et
 
 * **Frontend :** Next.js 14+ (React)
 * **Backend :** Node.js (API REST)
-* **ORM :** Prisma
+* **ORM :** Sequelize
 * **Base de données :** PostgreSQL
 * **Workflow :** Git Flow (develop / main)
 * **Conteneurisation :** Docker (DEV / PROD à venir)
@@ -25,7 +25,7 @@ L'architecture repose sur des technologies modernes pour garantir performance et
 ### 1️⃣ Prérequis
 * **Node.js** (v20 ou supérieur)
 * **npm**
-* **PostgreSQL** (local ou Docker)
+* **PostgreSQL** (SSH connection)
 
 ### 2️⃣ Lancement du Frontend
 ```bash
