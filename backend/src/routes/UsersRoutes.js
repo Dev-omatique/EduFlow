@@ -1,13 +1,17 @@
-// routes/UsersRoutes.js
 import express from 'express';
-import prisma from '../prismaClient.js';
+import User from '../models/User.js';
+import Role from '../models/Role.js';
 
 const router = express.Router();
 
-
 router.get('/', async (req, res) => {
     try {
-        const users = await prisma.user.findMany(); 
+        const users = await User.findAll({
+            include: {
+                model: Role,
+                as: 'role'
+            }
+        }); 
         res.status(200).json(users);
     } catch (error) {
         console.error(error);
