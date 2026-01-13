@@ -6,7 +6,9 @@ import { env as _env } from 'process';
 
 const basename = _basename(__filename);
 const env = _env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
+import config from "./../config/config.js";
+const config = config[env]
+
 const db = {};
 
 let sequelize;

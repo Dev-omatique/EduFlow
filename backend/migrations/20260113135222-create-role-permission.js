@@ -1,15 +1,26 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Roles', {
+    await queryInterface.createTable('RolePermissions', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      role: {
-        type: Sequelize.STRING
+      roleId: {
+        type: Sequelize.INTEGER,
+        references : {
+          model: "Roles",
+          key: "id"
+        }
+      },
+      permissionId: {
+        type: Sequelize.INTEGER,
+        references : {
+          model: "Permissions",
+          key: "id"
+        }
       },
       createdAt: {
         allowNull: false,
@@ -22,6 +33,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Roles');
+    await queryInterface.dropTable('RolePermissions');
   }
 };
