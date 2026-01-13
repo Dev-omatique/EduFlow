@@ -1,17 +1,30 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../db.js';
 
-const Role = sequelize.define('Role', {
+const Room = sequelize.define('Room', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    field: 'Id_role'
+    field: 'Id_room'
   },
-  role: {
+  name: {
     type: DataTypes.STRING,
-    allowNull: false,
     unique: true
+  },
+  capacity: {
+    type: DataTypes.INTEGER
+  },
+  location: {
+    type: DataTypes.STRING
+  },
+  floor: {
+    type: DataTypes.INTEGER,
+    field: 'floor_number'
+  },
+  roomTypeId: {
+    type: DataTypes.INTEGER,
+    field: 'Id_room_type'
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -22,8 +35,8 @@ const Role = sequelize.define('Role', {
     field: 'updated_at'
   }
 }, {
-  tableName: 'roles',
+  tableName: 'rooms',
   timestamps: true
 });
 
-export default Role;
+export default Room;

@@ -1,17 +1,16 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../db.js';
 
-const Role = sequelize.define('Role', {
-  id: {
+const RolePermission = sequelize.define('RolePermission', {
+  roleId: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    autoIncrement: true,
     field: 'Id_role'
   },
-  role: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true
+  permissionId: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    field: 'Id_permission'
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -22,8 +21,8 @@ const Role = sequelize.define('Role', {
     field: 'updated_at'
   }
 }, {
-  tableName: 'roles',
+  tableName: 'role_permission',
   timestamps: true
 });
 
-export default Role;
+export default RolePermission;

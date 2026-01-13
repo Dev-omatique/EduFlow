@@ -5,7 +5,7 @@ dotenv.config();
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: 'postgres',
-  logging: false, // Évite de remplir la console avec du SQL
+  logging: false,
 });
 
 export default sequelize;
