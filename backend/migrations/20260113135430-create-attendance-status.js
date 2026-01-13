@@ -1,14 +1,17 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Roles', {
+    await queryInterface.createTable('AttendanceStatuses', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      role: {
+      label: {
+        type: Sequelize.STRING
+      },
+      shortCode: {
         type: Sequelize.STRING
       },
       createdAt: {
@@ -22,6 +25,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Roles');
+    await queryInterface.dropTable('AttendanceStatuses');
   }
 };

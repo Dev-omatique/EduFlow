@@ -1,15 +1,26 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Roles', {
+    await queryInterface.createTable('PrincipalTeachers', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      role: {
-        type: Sequelize.STRING
+      classId: {
+        type: Sequelize.INTEGER,
+        references : {
+          model: "Classes",
+          key: "id"
+        }
+      },
+      teacherId: {
+        type: Sequelize.INTEGER,
+        references : {
+          model: "Users",
+          key: "id"
+        }
       },
       createdAt: {
         allowNull: false,
@@ -22,6 +33,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Roles');
+    await queryInterface.dropTable('PrincipalTeachers');
   }
 };

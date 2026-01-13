@@ -1,15 +1,31 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Roles', {
+    await queryInterface.createTable('Rooms', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      role: {
+      name: {
         type: Sequelize.STRING
+      },
+      capacity: {
+        type: Sequelize.INTEGER
+      },
+      location: {
+        type: Sequelize.STRING
+      },
+      floorNumber: {
+        type: Sequelize.INTEGER
+      },
+      roomTypeId: {
+        type: Sequelize.INTEGER,
+        references : {
+          model: "RoomTypes",
+          key: "id"
+        }
       },
       createdAt: {
         allowNull: false,
@@ -22,6 +38,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Roles');
+    await queryInterface.dropTable('Rooms');
   }
 };
