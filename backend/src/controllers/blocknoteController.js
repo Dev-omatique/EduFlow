@@ -7,10 +7,9 @@ const checkAuth = (req) => req.headers.authorization;
  */
 const getOne = async (req, res) => {
     try {
-        if (!checkAuth(req)) return res.status(401).json({ message: "Non authentifié" });
         
         // On cherche par userId et non par ID de note
-        const notepad = await BlockNote.findOne({ where: { userId: req.user.id } });
+        const notepad = await BlockNote.findOne({ where: { userId: req.params.id } });
         
         if (!notepad) return res.status(404).json({ message: "Vous n'avez pas encore de notepad." });
         
@@ -25,11 +24,8 @@ const getOne = async (req, res) => {
  */
 const create = async (req, res) => {
     try {
-        if (!checkAuth(req)) return res.status(401).json({ message: "Non authentifié" });
-        if (!req.body.title) return res.status(400).json({ message: "Le titre est requis" });
-        
         // Vérification 409: L'utilisateur a-t-il déjà un notepad ?
-        const existingNotepad = await BlockNote.findOne({ where: { userId: req.user.id } });
+        const existingNotepad = await BlockNote.findOne({ where: { userId: req.params.id } });
         if (existingNotepad) {
             return res.status(409).json({ message: "Un utilisateur ne peut avoir qu'un seul notepad." });
         }
@@ -37,7 +33,7 @@ const create = async (req, res) => {
         // Ajout forcé du userId de la session
         const newNote = await BlockNote.create({
             ...req.body,
-            userId: req.user.id
+            userId: req.params.id
         });
         
         res.status(201).json(newNote);
@@ -51,13 +47,12 @@ const create = async (req, res) => {
  */
 const update = async (req, res) => {
     try {
-        if (!checkAuth(req)) return res.status(401).json({ message: "Non authentifié" });
         
-        const notepad = await BlockNote.findOne({ where: { userId: req.user.id } });
+        const notepad = await BlockNote.findOne({ where: { userId: req.params.id } });
         
         if (!notepad) return res.status(404).json({ message: "Notepad introuvable." });
         
-        await notepad.update(req.body);
+        await notepad.update(req.bod, { where: { userId: req.params.id } });
         
         res.status(200).json(notepad);
     } catch (error) {
@@ -70,7 +65,6 @@ const update = async (req, res) => {
  */
 export const remove = async (req, res) => {
     try {
-        if (!checkAuth(req)) return res.status(401).json({ message: "Non authentifié" });
         
         const deleted = await BlockNote.destroy({ where: { userId: req.user.id } });
         
