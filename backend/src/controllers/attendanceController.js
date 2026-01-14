@@ -1,38 +1,38 @@
 import Attendance from "../models/attendance.js";
 
-const create = async (req, res) => {
+const create = async (req, res, next) => {
   try {
     const attendance = await Attendance.create(req.body);
-    res.json(attendance);
+    res.status(201).json(attendance);
   } catch (err) {
-    res.status(500).json(err);
+    next(err);
   }
 };
 
-const update = async (req,res) => {
-    try{
-        await Attendance.update(res.body,{
-            where : { id : req.parms.id }
-        });
-        res.json({message : 'successful update'})
-    }catch(err){
-        res.status(500).json(err);
-    }
+const update = async (req, res, next) => {
+  try {
+    await Attendance.update(req.body, {
+      where: { id: req.params.id }
+    });
 
+    res.json({ message: "successful update" });
+  } catch (err) {
+    next(err);
+  }
 };
 
-const remove = async(req,res) =>{
-    try{
-        await Attendance.destroy(res.body,{
-            where: { id : req.parms.id }
-        });
-        res.json({ message:'successful delete' })
-    }catch(err){
-        res.status(500).json(err);
-    }
+const remove = async (req, res, next) => {
+  try {
+    await Attendance.destroy({
+      where: { id: req.params.id }
+    });
+    res.json({ message: "successful delete" });
+  } catch (err) {
+    next(err);
+  }
 };
 
-const getTypeAll = async (req, res) => {
+const getTypeAll = async (req, res, next) => {
   try {
     const { type, id } = req.params;
 
@@ -40,20 +40,17 @@ const getTypeAll = async (req, res) => {
 
     if (type === "user") {
       where = { studientId: id };
-    } 
-    else if (type === "cours") {
+    } else if (type === "cours") {
       where = { courseId: id };
-    } 
-    else {
+    } else {
       return res.status(400).json({ message: "Type invalide" });
     }
 
     const attendances = await Attendance.findAll({ where });
     res.json(attendances);
-
   } catch (err) {
-    res.status(500).json(err);
+    next(err);
   }
 };
 
-export default { create,update,delete:remove,getTypeAll }
+export default { create, update, delete: remove, getTypeAll };
