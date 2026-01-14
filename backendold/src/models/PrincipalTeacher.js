@@ -8,9 +8,9 @@ const PrincipalTeacher = sequelize.define('PrincipalTeacher', {
     autoIncrement: true,
     field: 'Id_principal_teacher'
   },
-  classId: {
+  gradeId: {
     type: DataTypes.INTEGER,
-    field: 'Id_classes'
+    field: 'Id_grades'
   },
   teacherId: {
     type: DataTypes.INTEGER

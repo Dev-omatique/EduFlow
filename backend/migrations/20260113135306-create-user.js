@@ -29,10 +29,10 @@ export default {
       address: {
         type: Sequelize.STRING
       },
-      classId: {
+      gradeId: {
         type: Sequelize.INTEGER,
           references : {
-            model: "classes",
+            model: "grades",
             key: "id"
         }
       },

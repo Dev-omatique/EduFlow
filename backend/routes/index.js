@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import attendanceRouter from './attendanceRouter.js';
 import blocknoteRouter from './blocknoteRouter.js';
-import classeRouter from './gradeRouter.js';
+import gradeRouter from './gradeRouter.js';
 import courseRouter from './courseRouter.js';
 import examRouter from './examRouter.js';
 import gradeRouter from './noteRouter.js';
@@ -19,10 +19,10 @@ const router = Router();
 
 router.use('/attendances', attendanceRouter);
 router.use('/blocknotes', blocknoteRouter);
-router.use('/classes', classeRouter);
+router.use('/grade', classeRouter);
 router.use('/courses', courseRouter);
 router.use('/exams', examRouter);
-router.use('/grades', gradeRouter);
+router.use('/notes', gradeRouter);
 router.use('/lessons', lessonRouter);
 router.use('/news', newsRouter);
 router.use('/penalties', penaltyRouter);

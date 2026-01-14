@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     grade: DataTypes.DECIMAL,
     studentId: DataTypes.INTEGER,
     examId: DataTypes.INTEGER,
-    gradeStatusId: DataTypes.INTEGER
+    noteStatusId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Note',

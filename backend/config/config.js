@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-
+dotenv.config()
 const config =  {
   development: {
     dialect: 'postgres',

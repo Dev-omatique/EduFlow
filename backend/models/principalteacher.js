@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   PrincipalTeacher.init({
-    classId: DataTypes.INTEGER,
+    gradesId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER
   }, {
     sequelize,

@@ -17,7 +17,7 @@ export default {
       dueDate: {
         type: Sequelize.DATE
       },
-      maxGrades: {
+      maxNotes: {
         type: Sequelize.DECIMAL
       },
       coefficient: {
@@ -40,10 +40,10 @@ export default {
           key: "id"
         }
       },
-      classId: {
+      gradeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "classes",
+          model: "grades",
           key: "id"
         }
       },

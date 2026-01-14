@@ -8,10 +8,10 @@ export default {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      classId: {
+      gradeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "classes",
+          model: "grades",
           key: "id"
         }
       },

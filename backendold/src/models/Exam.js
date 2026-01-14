@@ -18,9 +18,9 @@ const Exam = sequelize.define('Exam', {
     type: DataTypes.DATE,
     field: 'due_date'
   },
-  maxGrades: {
+  maxNotes: {
     type: DataTypes.DECIMAL,
-    field: 'max_grades'
+    field: 'max_notes'
   },
   coefficient: {
     type: DataTypes.INTEGER
@@ -35,9 +35,9 @@ const Exam = sequelize.define('Exam', {
   teacherId: {
     type: DataTypes.INTEGER
   },
-  classId: {
+  gradeId: {
     type: DataTypes.INTEGER,
-    field: 'Id_classes'
+    field: 'Id_grades'
   },
   createdAt: {
     type: DataTypes.DATE,

@@ -35,10 +35,10 @@ export default {
           key: "id"
         }
       },
-      classId: {
+      gradeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "classes",
+          model: "grades",
           key: "id"
         }
       },

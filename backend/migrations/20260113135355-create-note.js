@@ -14,7 +14,7 @@ export default {
       studentId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
@@ -28,7 +28,7 @@ export default {
       noteStatusId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "grade_statuses",
+          model: "note_statuses",
           key: "id"
         }
       },
