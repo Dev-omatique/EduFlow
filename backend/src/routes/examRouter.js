@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import examController from '../controllers/examController.js';
+
 var examRouter = Router();
 
 examRouter.get('/:id', examController.getOne);

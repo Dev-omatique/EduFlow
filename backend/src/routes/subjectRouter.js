@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import subjectController from '../controllers/subjectController.js';
+
 var subjectRouter = Router();
 
 subjectRouter.get('/:id', subjectController.getOne);

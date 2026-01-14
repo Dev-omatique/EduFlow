@@ -7,7 +7,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors'
 import indexRouter from './routes/index.js';
-import usersRouter from './routes/userRouter.js';
 
 var app = express();
 
@@ -23,7 +22,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(join(__dirname, 'public')));
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/api', indexRouter);
 
 export default app;

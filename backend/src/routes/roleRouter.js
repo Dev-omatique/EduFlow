@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import roleController from '../controllers/roleController.js';
+
 var roleRouter = Router();
 
 roleRouter.get('/:id', roleController.getOne);
