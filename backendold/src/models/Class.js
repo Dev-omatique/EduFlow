@@ -1,12 +1,12 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../db.js';
 
-const Class = sequelize.define('Class', {
+const Grade = sequelize.define('Grade', {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    field: 'Id_classes'
+    field: 'notes'
   },
   name: {
     type: DataTypes.STRING,
@@ -25,9 +25,9 @@ const Class = sequelize.define('Class', {
     field: 'updated_at'
   }
 }, {
-  tableName: 'classes',
+  tableName: 'grades',
   timestamps: true
 });
 
-export default Class;
+export default Grade;
     

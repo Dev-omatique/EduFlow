@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
     title: DataTypes.STRING,
     description: DataTypes.STRING,
     dueDate: DataTypes.DATE,
-    maxGrades: DataTypes.DECIMAL,
+    maxNotes: DataTypes.DECIMAL,
     coefficient: DataTypes.INTEGER,
     isGraded: DataTypes.BOOLEAN,
     subjectId: DataTypes.INTEGER,
@@ -26,6 +26,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Exam',
+    tableName: 'exams',
+    freezeTableName: true,
   });
   return Exam;
 };

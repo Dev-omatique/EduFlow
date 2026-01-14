@@ -1,18 +1,18 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('GradeStatuses', {
+    await queryInterface.createTable('notes', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      status: {
+      name: {
         type: Sequelize.STRING
       },
-      shortStatus: {
-        type: Sequelize.STRING
+      schoolYear: {
+        type: Sequelize.DATE
       },
       createdAt: {
         allowNull: false,
@@ -25,6 +25,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('GradeStatuses');
+    await queryInterface.dropTable('notes');
   }
 };

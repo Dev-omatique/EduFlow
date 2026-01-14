@@ -19,6 +19,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'BlockNote',
+    tableName: 'block_notes',
+    freezeTableName: true,
   });
   return BlockNote;
 };

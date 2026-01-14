@@ -6,9 +6,9 @@ const Grade = sequelize.define('Grade', {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-    field: 'Id_grades'
+    field: 'Id_notes'
   },
-  grades: {
+  notes: {
     type: DataTypes.DECIMAL
   },
   studentId: {
@@ -19,9 +19,9 @@ const Grade = sequelize.define('Grade', {
     type: DataTypes.INTEGER,
     field: 'Id_exams'
   },
-  gradesStatusId: {
+  notesStatusId: {
     type: DataTypes.INTEGER,
-    field: 'Id_grades_status'
+    field: 'Id_notes_status'
   },
   createdAt: {
     type: DataTypes.DATE,
@@ -32,7 +32,7 @@ const Grade = sequelize.define('Grade', {
     field: 'updated_at'
   }
 }, {
-  tableName: 'grades',
+  tableName: 'notes',
   timestamps: true
 });
 
