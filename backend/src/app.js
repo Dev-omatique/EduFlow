@@ -7,7 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors'
 import indexRouter from './routes/index.js';
-import usersRouter from './routes/users.js';
+import usersRouter from './routes/userRouter.js';
 
 var app = express();
 
