@@ -1,9 +1,35 @@
 import { Router } from 'express';
-var router = Router();
 
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.send("hello world")
-});
+import attendanceRouter from './attendanceRouter.js';
+import blocknoteRouter from './blocknoteRouter.js';
+import gradeRouter from './gradeRouter.js';
+import courseRouter from './courseRouter.js';
+import examRouter from './examRouter.js';
+import gradeRouter from './noteRouter.js';
+import lessonRouter from './lessonRouter.js';
+import newsRouter from './newsRouter.js';
+import penaltyRouter from './penaltyRouter.js';
+import permissionRouter from './permissionRouter.js';
+import roleRouter from './roleRouter.js';
+import roomRouter from './roomRouter.js';
+import subjectRouter from './subjectRouter.js';
+import userRouter from './userRouter.js';
+
+const router = Router();
+
+router.use('/attendances', attendanceRouter);
+router.use('/blocknotes', blocknoteRouter);
+router.use('/grade', classeRouter);
+router.use('/courses', courseRouter);
+router.use('/exams', examRouter);
+router.use('/notes', gradeRouter);
+router.use('/lessons', lessonRouter);
+router.use('/news', newsRouter);
+router.use('/penalties', penaltyRouter);
+router.use('/permissions', permissionRouter);
+router.use('/roles', roleRouter);
+router.use('/rooms', roomRouter);
+router.use('/subjects', subjectRouter);
+router.use('/users', userRouter);
 
 export default router;

@@ -26,9 +26,9 @@ const Course = sequelize.define('Course', {
     type: DataTypes.INTEGER,
     field: 'teacher_id'
   },
-  classId: {
+  gradeId: {
     type: DataTypes.INTEGER,
-    field: 'Id_classes'
+    field: 'Id_grades'
   },
   createdAt: {
     type: DataTypes.DATE,

@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ParentStudent',
+    tableName: 'parent_students',
+    freezeTableName: true,
   });
   return ParentStudent;
 };

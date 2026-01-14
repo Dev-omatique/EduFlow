@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('AttendanceStatuses', {
+    await queryInterface.createTable('attendance_statuses', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -25,6 +25,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('AttendanceStatuses');
+    await queryInterface.dropTable('attendance_statuses');
   }
 };

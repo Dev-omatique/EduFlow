@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Penalties', {
+    await queryInterface.createTable('penalties', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,21 +11,21 @@ export default {
       penaltyTypeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "PenaltyTypes",
+          model: "penalty_types",
           key: "id"
         }
       },
       studentId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
       responsibleId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
@@ -40,6 +40,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Penalties');
+    await queryInterface.dropTable('penalties');
   }
 };

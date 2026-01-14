@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Rooms', {
+    await queryInterface.createTable('rooms', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -23,7 +23,7 @@ export default {
       roomTypeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "RoomTypes",
+          model: "room_types",
           key: "id"
         }
       },
@@ -38,6 +38,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Rooms');
+    await queryInterface.dropTable('rooms');
   }
 };

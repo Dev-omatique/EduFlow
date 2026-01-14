@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Exams', {
+    await queryInterface.createTable('exams', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -17,7 +17,7 @@ export default {
       dueDate: {
         type: Sequelize.DATE
       },
-      maxGrades: {
+      maxNotes: {
         type: Sequelize.DECIMAL
       },
       coefficient: {
@@ -29,21 +29,21 @@ export default {
       subjectId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Subjects",
+          model: "subjects",
           key: "id"
         }
       },
       teacherId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
-      classId: {
+      gradeId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Classes",
+          model: "grades",
           key: "id"
         }
       },
@@ -58,6 +58,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Exams');
+    await queryInterface.dropTable('exams');
   }
 };

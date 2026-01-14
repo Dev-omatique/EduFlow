@@ -1,6 +1,7 @@
+'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Permissions', {
+    await queryInterface.createTable('permissions', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -24,6 +25,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Permissions');
+    await queryInterface.dropTable('permissions');
   }
 };
