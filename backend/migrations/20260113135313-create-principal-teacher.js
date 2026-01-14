@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('PrincipalTeachers', {
+    await queryInterface.createTable('principal_teachers', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -11,14 +11,14 @@ export default {
       classId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Classes",
+          model: "classes",
           key: "id"
         }
       },
       teacherId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
@@ -33,6 +33,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('PrincipalTeachers');
+    await queryInterface.dropTable('principal_teachers');
   }
 };

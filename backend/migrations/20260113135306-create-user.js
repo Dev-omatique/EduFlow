@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Users', {
+    await queryInterface.createTable('users', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -32,14 +32,14 @@ export default {
       classId: {
         type: Sequelize.INTEGER,
           references : {
-            model: "Classes",
+            model: "classes",
             key: "id"
         }
       },
       roleId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Roles",
+          model: "roles",
           key: "id"
         }
       },
@@ -54,6 +54,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Users');
+    await queryInterface.dropTable('users');
   }
 };

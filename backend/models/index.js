@@ -6,7 +6,7 @@ import { env as _env } from 'process';
 
 const basename = _basename(__filename);
 const env = _env.NODE_ENV || 'development';
-import config from "./../config/config.js";
+import config from "../config/config.js";
 const config = config[env]
 
 const db = {};

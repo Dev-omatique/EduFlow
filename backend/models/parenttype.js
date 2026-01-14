@@ -18,6 +18,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ParentType',
+    tableName: 'parent_types',
+    freezeTableName: true,
   });
   return ParentType;
 };

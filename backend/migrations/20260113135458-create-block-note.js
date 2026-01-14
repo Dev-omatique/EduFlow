@@ -1,7 +1,7 @@
 'use strict';
 export default {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('BlockNotes', {
+    await queryInterface.createTable('block_notes', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -14,7 +14,7 @@ export default {
       userId: {
         type: Sequelize.INTEGER,
         references : {
-          model: "Users",
+          model: "users",
           key: "id"
         }
       },
@@ -29,6 +29,6 @@ export default {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('BlockNotes');
+    await queryInterface.dropTable('block_notes');
   }
 };
