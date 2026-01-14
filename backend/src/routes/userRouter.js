@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import userController from '../controllers/userController.js';
+
 var userRouter = Router();
 
 userRouter.get('/:id', userController.getOne);

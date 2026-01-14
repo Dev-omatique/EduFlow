@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import permissionController from '../controllers/permissionController.js';
+
 var permissionRouter = Router();
 
 permissionRouter.get('/', permissionController.getAll);

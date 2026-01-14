@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import newsController from '../controllers/newsController.js';
+
 var newsRouter = Router();
 
 newsRouter.get('/:id', newsController.getOne);

@@ -1,8 +1,7 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
-module.exports = (sequelize, DataTypes) => {
+import { Model } from 'sequelize';
+
+export default (sequelize, DataTypes) => {
   class Attendance extends Model {
     /**
      * Helper method for defining associations.
@@ -13,16 +12,21 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Attendance.init({
-    comment: DataTypes.STRING,
-    attendanceStatusId: DataTypes.INTEGER,
-    courseId: DataTypes.INTEGER,
-    studentId: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'Attendance',
-    tableName: 'attendances',
-    freezeTableName: true,
-  });
+
+  Attendance.init(
+    {
+      comment: DataTypes.STRING,
+      attendanceStatusId: DataTypes.INTEGER,
+      courseId: DataTypes.INTEGER,
+      studentId: DataTypes.INTEGER,
+    },
+    {
+      sequelize,
+      modelName: 'Attendance',
+      tableName: 'attendances',
+      freezeTableName: true,
+    }
+  );
+
   return Attendance;
 };

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import lessonController from '../controllers/lessonController.js';
+
 var lessonRouter = Router();
 
 lessonRouter.get('/:id', lessonController.getOne);

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import penaltyController from '../controllers/penaltyController.js';
+
 var penaltyRouter = Router();
 
 penaltyRouter.get('/', penaltyController.getAll);

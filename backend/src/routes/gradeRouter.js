@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import gradeController from '../controllers/gradeController.js';
+
 var gradeRouter = Router();
 
 gradeRouter.get('/:id', gradeController.getOne);
