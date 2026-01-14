@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors'
 import indexRouter from './routes/index.js';
+import errorHandler from './middlewares/errorHandler.js';
 
 var app = express();
 
@@ -23,5 +24,8 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(join(__dirname, 'public')));
 app.use('/api', indexRouter);
+
+//toujours le deniere
+app.use(errorHandler);
 
 export default app;
