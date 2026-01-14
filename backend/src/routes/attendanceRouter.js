@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import attendanceController from '../controllers/attendanceController.js';
+
 var attendanceRouter = Router();
 
 attendanceRouter.post('/', attendanceController.create);

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import noteController from '../controllers/noteController.js';
+
 var noteRouter = Router();
 
 noteRouter.post('/', noteController.create);

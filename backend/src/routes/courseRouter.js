@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import courseController from '../controllers/blController.js';
+
 var courseRouter = Router();
 
 courseRouter.get('/', courseController.getAll);
