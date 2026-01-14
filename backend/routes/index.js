@@ -2,10 +2,10 @@ import { Router } from 'express';
 
 import attendanceRouter from './attendanceRouter.js';
 import blocknoteRouter from './blocknoteRouter.js';
-import classeRouter from './classeRouter.js';
+import classeRouter from './gradeRouter.js';
 import courseRouter from './courseRouter.js';
 import examRouter from './examRouter.js';
-import gradeRouter from './gradeRouter.js';
+import gradeRouter from './noteRouter.js';
 import lessonRouter from './lessonRouter.js';
 import newsRouter from './newsRouter.js';
 import penaltyRouter from './penaltyRouter.js';
