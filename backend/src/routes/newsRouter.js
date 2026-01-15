@@ -1,20 +1,20 @@
-import { Router } from 'express';
-import newsController from '../controllers/newsController.js';
+// import { Router } from 'express';
+// import newsController from '../controllers/newsController.js';
 
-var newsRouter = Router();
+// var newsRouter = Router();
 
-newsRouter.get('/:id', newsController.getOne);
+// newsRouter.get('/:id', newsController.getOne);
 
-newsRouter.get('/', newsController.getAll);
+// newsRouter.get('/', newsController.getAll);
 
-newsRouter.post('/', newsController.create);
+// newsRouter.post('/', newsController.create);
 
-newsRouter.put('/:id', newsController.update);
+// newsRouter.put('/:id', newsController.update);
 
-newsRouter.delete('/:id', newsController.delete);
+// newsRouter.delete('/:id', newsController.delete);
 
-// ---------------------------------------------------- //
+// // ---------------------------------------------------- //
 
-newsRouter.get('/:type/:id', newsController.getTypeAll);
+// newsRouter.get('/:type/:id', newsController.getTypeAll);
 
-export default newsRouter;
+// export default newsRouter;

@@ -1,20 +1,20 @@
-import { Router } from 'express';
-import roleController from '../controllers/roleController.js';
+// import { Router } from 'express';
+// import roleController from '../controllers/roleController.js';
 
-var roleRouter = Router();
+// var roleRouter = Router();
 
-roleRouter.get('/:id', roleController.getOne);
+// roleRouter.get('/:id', roleController.getOne);
 
-roleRouter.get('/', roleController.getAll);
+// roleRouter.get('/', roleController.getAll);
 
-roleRouter.post('/', roleController.create);
+// roleRouter.post('/', roleController.create);
 
-roleRouter.put('/:id', roleController.update);
+// roleRouter.put('/:id', roleController.update);
 
-roleRouter.delete('/:id', roleController.delete);
+// roleRouter.delete('/:id', roleController.delete);
 
-// ---------------------------------------------------- //
+// // ---------------------------------------------------- //
 
-roleRouter.get('/:type/:id', roleController.getTypeAll);
+// roleRouter.get('/:type/:id', roleController.getTypeAll);
 
-export default roleRouter;
+// export default roleRouter;

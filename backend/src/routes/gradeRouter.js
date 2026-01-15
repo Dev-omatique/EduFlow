@@ -1,20 +1,20 @@
-import { Router } from 'express';
-import gradeController from '../controllers/gradeController.js';
+// import { Router } from 'express';
+// import gradeController from '../controllers/gradeController.js';
 
-var gradeRouter = Router();
+// var gradeRouter = Router();
 
-gradeRouter.get('/:id', gradeController.getOne);
+// gradeRouter.get('/:id', gradeController.getOne);
 
-gradeRouter.get('/', gradeController.getAll);
+// gradeRouter.get('/', gradeController.getAll);
 
-gradeRouter.post('/', gradeController.create);
+// gradeRouter.post('/', gradeController.create);
 
-gradeRouter.put('/:id', gradeController.update);
+// gradeRouter.put('/:id', gradeController.update);
 
-gradeRouter.delete('/:id', gradeController.delete);
+// gradeRouter.delete('/:id', gradeController.delete);
 
-// ---------------------------------------------------- //
+// // ---------------------------------------------------- //
 
-gradeRouter.get('/:type/:id', gradeController.getTypeAll);
+// gradeRouter.get('/:type/:id', gradeController.getTypeAll);
 
-export default gradeRouter;
+// export default gradeRouter;

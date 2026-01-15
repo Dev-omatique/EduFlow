@@ -1,20 +1,20 @@
-import { Router } from 'express';
-import roomController from '../controllers/roomController.js';
+// import { Router } from 'express';
+// import roomController from '../controllers/roomController.js';
 
-var roomRouter = Router();
+// var roomRouter = Router();
 
-roomRouter.get('/', roomController.getAll);
+// roomRouter.get('/', roomController.getAll);
 
-roomRouter.get('/:id', roomController.getOne);
+// roomRouter.get('/:id', roomController.getOne);
 
-roomRouter.post('/', roomController.create);
+// roomRouter.post('/', roomController.create);
 
-roomRouter.put('/:id', roomController.update);
+// roomRouter.put('/:id', roomController.update);
 
-roomRouter.delete('/:id', roomController.delete);
+// roomRouter.delete('/:id', roomController.delete);
 
-// ---------------------------------------------------- //
+// // ---------------------------------------------------- //
 
-roomRouter.get('/:type/:id', roomController.getTypeAll);
+// roomRouter.get('/:type/:id', roomController.getTypeAll);
 
-export default roomRouter;
+// export default roomRouter;

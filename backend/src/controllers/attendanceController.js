@@ -1,4 +1,6 @@
-import Attendance from "../models/attendance.js";
+import db from '../models/index.js'
+
+const { Attendance } = db
 
 const create = async (req, res, next) => {
   try {
@@ -39,7 +41,7 @@ const getTypeAll = async (req, res, next) => {
     let where = {};
 
     if (type === "user") {
-      where = { studientId: id };
+      where = { studentId: id };
     } else if (type === "cours") {
       where = { courseId: id };
     } else {
