@@ -3,8 +3,6 @@ import courseController from '../controllers/courseController.js';
 
 var courseRouter = Router();
 
-courseRouter.get('/', courseController.getAll);
-
 courseRouter.get('/:id', courseController.getOne);
 
 courseRouter.post('/', courseController.create);
@@ -15,6 +13,6 @@ courseouter.delete('/:id', courseController.delete);
 
 // ---------------------------------------------------- //
 
-courseRouter.get('/:type/:id', courseController.getTypeAll);
+courseRouter.get('/:type/:id;:startDate;:endDate', courseController.getTypeAll);
 
 export default courseRouter;
