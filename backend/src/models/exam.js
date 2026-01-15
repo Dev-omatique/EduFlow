@@ -10,6 +10,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      models.Exam.belongsTo(models.Note, { targetKey: "examId" });
     }
   }
   Exam.init({
