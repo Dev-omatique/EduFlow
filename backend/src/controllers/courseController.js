@@ -11,5 +11,17 @@ const create = async (req, res, next) => {
     }
 };
 
+const update = async (req, res, next) => {
+    try {
+        await Course.update(req.body, {
+            where: { id: req.params.id },
+        });
 
-export default {create};
+        res.json({ message: "successful update" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+export default {create, update};
