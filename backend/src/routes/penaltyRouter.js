@@ -1,20 +1,20 @@
-// import { Router } from 'express';
-// import penaltyController from '../controllers/penaltyController.js';
+import { Router } from 'express';
+import penaltyController from '../controllers/penaltyController.js';
 
-// var penaltyRouter = Router();
+var penaltyRouter = Router();
 
-// penaltyRouter.get('/', penaltyController.getAll);
+penaltyRouter.get('/', penaltyController.getAll);
 
-// penaltyRouter.get('/:id', penaltyController.getOne);
+penaltyRouter.get('/:id', penaltyController.getOne);
 
-// penaltyRouter.post('/', penaltyController.create);
+penaltyRouter.post('/', penaltyController.create);
 
-// penaltyRouter.put('/:id', penaltyController.update);
+penaltyRouter.put('/:id', penaltyController.update);
 
-// penaltyRouter.delete('/:id', penaltyController.delete);
+penaltyRouter.delete('/:id', penaltyController.delete);
 
-// // ---------------------------------------------------- //
+// ---------------------------------------------------- //
 
-// penaltyRouter.get('/:type/:id', penaltyController.getTypeAll);
+penaltyRouter.get('/:type/:id', penaltyController.getTypeAll);
 
-// export default penaltyRouter;
+export default penaltyRouter;

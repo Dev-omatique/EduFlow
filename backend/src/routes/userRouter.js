@@ -1,20 +1,20 @@
-// import { Router } from 'express';
-// import userController from '../controllers/userController.js';
+import { Router } from 'express';
+import userController from '../controllers/userController.js';
 
-// var userRouter = Router();
+var userRouter = Router();
 
-// userRouter.get('/:id', userController.getOne);
+userRouter.get('/:id', userController.getOne);
 
-// userRouter.get('/', userController.getAll);
+userRouter.get('/', userController.getAll);
 
-// userRouter.post('/', userController.create);
+userRouter.post('/', userController.create);
 
-// userRouter.put('/:id', userController.update);
+userRouter.put('/:id', userController.update);
 
-// userRouter.delete('/:id', userController.delete);
+userRouter.delete('/:id', userController.delete);
 
-// // ---------------------------------------------------- //
+// ---------------------------------------------------- //
 
-// userRouter.get('/:type/:id', userController.getTypeAll);// if type = student or teacher
+userRouter.get('/:type/:id', userController.getTypeAll);// if type = student or teacher
 
-// export default userRouter;
+export default userRouter;

@@ -1,18 +1,18 @@
-// import { Router } from 'express';
-// import examController from '../controllers/examController.js';
+import { Router } from 'express';
+import examController from '../controllers/examController.js';
 
-// var examRouter = Router();
+var examRouter = Router();
 
-// examRouter.get('/:id', examController.getOne);
+examRouter.get('/:id', examController.getOne);
 
-// examRouter.post('/', examController.create);
+examRouter.post('/', examController.create);
 
-// examRouter.put('/:id', examController.update);
+examRouter.put('/:id', examController.update);
 
-// examRouter.delete('/:id', examController.delete);
+examRouter.delete('/:id', examController.delete);
 
-// // ---------------------------------------------------- //
+// ---------------------------------------------------- //
 
-// examRouter.get('/:type/:id', examController.getTypeAll);
+examRouter.get('/:type/:id', examController.getTypeAll);
 
-// export default examRouter;
+export default examRouter;

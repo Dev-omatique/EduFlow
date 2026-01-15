@@ -1,18 +1,18 @@
-// import { Router } from 'express';
-// import permissionController from '../controllers/permissionController.js';
+import { Router } from 'express';
+import permissionController from '../controllers/permissionController.js';
 
-// var permissionRouter = Router();
+var permissionRouter = Router();
 
-// permissionRouter.get('/', permissionController.getAll);
+permissionRouter.get('/', permissionController.getAll);
 
-// permissionRouter.post('/', permissionController.create);
+permissionRouter.post('/', permissionController.create);
 
-// permissionRouter.put('/:id', permissionController.update);
+permissionRouter.put('/:id', permissionController.update);
 
-// permissionRouter.delete('/:id', permissionController.delete);
+permissionRouter.delete('/:id', permissionController.delete);
 
-// // ---------------------------------------------------- //
+// ---------------------------------------------------- //
 
-// permissionRouter.get('/:type/:id', permissionController.getTypeAll);
+permissionRouter.get('/:type/:id', permissionController.getTypeAll);
 
-// export default permissionRouter;
+export default permissionRouter;
