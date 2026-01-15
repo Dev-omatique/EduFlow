@@ -1,11 +1,11 @@
 import db from '../models/index.js'
 
-const { News } = db
+const { Subject } = db
 
 const getOne = async (req, res, next) => {
   try {
-    const news = await News.findOne({where : { id : req.params.id }});
-    res.status(201).json(news);
+    const subjects = await Subject.findOne({where : { id : req.params.id }});
+    res.status(201).json(subjects);
   } catch (err) {
     next(err);
   }
@@ -13,8 +13,8 @@ const getOne = async (req, res, next) => {
 
 const getAll = async (req,res,next) =>{
     try{
-        const news = await News.findAll()
-        res.status(200).json(news)
+        const subjects = await Subject.findAll()
+        res.status(200).json(subjects)
     }catch(err){
         next(err)
     }
@@ -22,8 +22,8 @@ const getAll = async (req,res,next) =>{
 
 const create = async (req, res, next) => {
   try {
-    const news = await News.create(req.body);
-    res.status(201).json(news);
+    const subjects = await Subject.create(req.body);
+    res.status(201).json(subjects);
   } catch (err) {
     next(err);
   }
@@ -31,7 +31,7 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    await News.update(req.body, {
+    await Subject.update(req.body, {
       where: { id: req.params.id }
     });
 
@@ -43,7 +43,7 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    await News.destroy({
+    await Subject.destroy({
       where: { id: req.params.id }
     });
     res.json({ message: "successful delete" });
@@ -51,5 +51,7 @@ const remove = async (req, res, next) => {
     next(err);
   }
 };
+
+
 
 export default { getOne,getAll,create,update,delete: remove };

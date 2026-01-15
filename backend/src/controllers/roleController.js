@@ -36,7 +36,7 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    await Attendance.destroy({
+    await Roles.destroy({
       where: { id: req.params.id }
     });
     res.json({ message: "successful delete" });
