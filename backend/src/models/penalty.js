@@ -19,7 +19,7 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Penalty',
-    tableName: 'penaltys',
+    tableName: 'penalties',
     freezeTableName: true,
   });
   return Penalty;
