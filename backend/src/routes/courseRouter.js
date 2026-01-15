@@ -13,6 +13,6 @@ courseouter.delete('/:id', courseController.delete);
 
 // ---------------------------------------------------- //
 
-courseRouter.get('/:type/:id;:startDate;:endDate', courseController.getTypeAll);
+courseRouter.get('/:type/:id', courseController.getTypeAll);
 
 export default courseRouter;
