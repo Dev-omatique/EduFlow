@@ -23,5 +23,15 @@ const update = async (req, res, next) => {
     }
 };
 
+const remove = async (req, res, next) => {
+    try {
+        await Course.destroy({
+            where: { id: req.params.id },
+        });
+        res.json({ message: "successful delete" });
+    } catch (err) {
+        next(err);
+    }
+};
 
-export default {create, update};
+export default {create, update, remove};
