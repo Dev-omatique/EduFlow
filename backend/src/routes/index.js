@@ -19,7 +19,7 @@ const router = Router();
 
 router.use('/attendances', attendanceRouter);
 router.use('/blocknotes', blocknoteRouter);
-router.use('/grade', gradeRouter);
+router.use('/grades', gradeRouter);
 router.use('/courses', courseRouter);
 router.use('/exams', examRouter);
 router.use('/notes', noteRouter);

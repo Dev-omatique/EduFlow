@@ -2,7 +2,7 @@
 import { Model } from 'sequelize';
 
 export default (sequelize, DataTypes) => {
-  class Note extends Model {
+  class Grade extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -12,14 +12,14 @@ export default (sequelize, DataTypes) => {
       // define association here
     }
   }
-  Note.init({
+  Grade.init({
     name: DataTypes.STRING,
     schoolYear: DataTypes.DATE
   }, {
     sequelize,
-    modelName: 'Note',
-    tableName: 'notes',
+    modelName: 'Grade',
+    tableName: 'grades',
     freezeTableName: true,
   });
-  return Note;
+  return Grade;
 };
