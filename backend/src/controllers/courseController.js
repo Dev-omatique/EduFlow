@@ -34,4 +34,37 @@ const remove = async (req, res, next) => {
     }
 };
 
-export default {create, update, remove};
+const getTypeAll = async (req, res, next) => {
+    try {
+        const { type, id, startDate, endDate } = req.params;
+
+        // 1. Définition de la clé dynamique (teacherId ou gradeId)
+        const typeMapping = {
+            teacher: 'teacherId',
+            grade: 'gradeId'
+        };
+
+        const idKey = typeMapping[type];
+
+        // 2. Validation du type
+        if (!idKey) {
+            return res.status(400).json({ message: "Type invalide (doit être 'teacher' ou 'grade')" });
+        }
+
+        // 3. Construction du 'where' propre
+        const where = {
+            [idKey]: id,
+            startDate: {
+                [Op.between]: [startDate, endDate]
+            }
+        };
+
+        const courses = await Course.findAll({ where });
+        res.json(courses);
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+export default {create, update, remove, getTypeAll};
