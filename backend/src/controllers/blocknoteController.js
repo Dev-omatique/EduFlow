@@ -1,8 +1,8 @@
-import BlockNote from "../models/blocknote.js";
+import db from '../models/index.js'
 
-/**
- * GET - Récupérer LE notepad de l'utilisateur connecté
- */
+const { BlockNote } = db
+
+
 const getOne = async (req, res, next) => {
     try {
         
@@ -75,4 +75,4 @@ export const remove = async (req, res, next) => {
 };
 
 
-export { getOne, create, update, remove as delete };
+export default { getOne, create, update, delete: remove };
