@@ -3,8 +3,6 @@ import courseController from '../controllers/courseController.js';
 
 var courseRouter = Router();
 
-courseRouter.get('/', courseController.getAll);
-
 courseRouter.get('/:id', courseController.getOne);
 
 courseRouter.post('/', courseController.create);
