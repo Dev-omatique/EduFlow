@@ -13,8 +13,4 @@ subjectRouter.put('/:id', subjectController.update);
 
 subjectRouter.delete('/:id', subjectController.delete);
 
-// ---------------------------------------------------- //
-
-subjectRouter.get('/:type/:id', subjectController.getTypeAll);
-
 export default subjectRouter;

@@ -44,7 +44,7 @@ const update = async (req, res, next) => {
 
 const remove = async (req, res, next) => {
   try {
-    await Attendance.destroy({
+    await Penalty.destroy({
       where: { id: req.params.id }
     });
     res.json({ message: "successful delete" });
@@ -79,8 +79,8 @@ const getTypeAll = async (req, res, next) => {
       if (endDate) where.dueDate[Op.lte] = endDate;
     }
 
-    const exams = await Exam.findAll({ where });
-    res.json(exams);
+    const penalty = await Penalty.findAll({ where });
+    res.json(penalty);
     
   } catch (err) {
     next(err);
