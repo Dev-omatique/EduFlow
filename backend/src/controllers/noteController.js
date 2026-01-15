@@ -11,4 +11,16 @@ const create = async (req, res, next) => {
     }
 };
 
+const update = async (req, res, next) => {
+    try {
+        await Note.update(req.body, {
+            where: { id: req.params.id },
+        });
+
+        res.json({ message: "successful update" });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default { create };
