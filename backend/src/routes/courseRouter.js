@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import courseController from '../controllers/blController.js';
+import courseController from '../controllers/courseController.js';
 
 var courseRouter = Router();
 

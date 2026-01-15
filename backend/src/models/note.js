@@ -23,5 +23,5 @@ export default (sequelize, DataTypes) => {
     tableName: 'notes',
     freezeTableName: true,
   });
-  return Grade;
+  return Note;
 };
