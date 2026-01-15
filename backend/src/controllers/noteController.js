@@ -23,4 +23,15 @@ const update = async (req, res, next) => {
     }
 };
 
-export default { create };
+const remove = async (req, res, next) => {
+    try {
+        await Note.destroy({
+            where: { id: req.params.id },
+        });
+        res.json({ message: "successful delete" });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export default { create, update, delete: remove };
