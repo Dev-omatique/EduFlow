@@ -40,7 +40,7 @@ const getTypeAll = async (req, res, next) => {
 
     let where = {};
 
-    if (type === "user") {
+    if (type === "student") {
       where = { studentId: id };
     } else if (type === "cours") {
       where = { courseId: id };

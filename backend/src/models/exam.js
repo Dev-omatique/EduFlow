@@ -21,7 +21,7 @@ export default (sequelize, DataTypes) => {
     isGraded: DataTypes.BOOLEAN,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,
-    classId: DataTypes.INTEGER
+    gradeId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Exam',
