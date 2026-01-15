@@ -36,7 +36,8 @@ const remove = async (req, res, next) => {
 
 const getTypeAll = async (req, res, next) => {
     try {
-        const { type, id, startDate, endDate } = req.params;
+        const { type, id } = req.params;
+        const { startDate, endDate } = req.query;
 
         // 1. Définition de la clé dynamique (teacherId ou gradeId)
         const typeMapping = {
@@ -51,13 +52,11 @@ const getTypeAll = async (req, res, next) => {
             return res.status(400).json({ message: "Type invalide (doit être 'teacher' ou 'grade')" });
         }
 
-        // 3. Construction du 'where' propre
-        const where = {
-            [idKey]: id,
-            startDate: {
-                [Op.between]: [startDate, endDate]
-            }
-        };
+        if (startDate || endDate) {
+            where.startTime = {};
+            if (startDate) where.startTime[Op.gte] = startDate;
+            if (endDate) where.startTime[Op.lte] = endDate;
+        }
 
         const courses = await Course.findAll({ where });
         res.json(courses);
@@ -68,3 +67,35 @@ const getTypeAll = async (req, res, next) => {
 };
 
 export default {create, update, remove, getTypeAll};
+
+const getTypeAll = async (req, res, next) => {
+    try {
+        const { type, id } = req.params;
+        const { startDate, endDate } = req.query;
+
+        const typeMapping = {
+            teacher: "teacherId",
+            cours: "gradeId",
+        };
+
+        const idKey = typeMapping[type];
+        if (!idKey) {
+            return res.status(400).json({ message: "Type invalide" });
+        }
+
+        const where = {
+            [idKey]: Number(id),
+        };
+
+        if (startDate || endDate) {
+            where.dueDate = {};
+            if (startDate) where.dueDate[Op.gte] = startDate;
+            if (endDate) where.dueDate[Op.lte] = endDate;
+        }
+
+        const exams = await Exam.findAll({ where });
+        res.json(exams);
+    } catch (err) {
+        next(err);
+    }
+};
