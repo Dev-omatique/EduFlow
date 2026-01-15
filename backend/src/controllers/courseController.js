@@ -70,4 +70,4 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default {create, update, remove, getTypeAll};
+export default {create, update, delete: remove, getTypeAll};
