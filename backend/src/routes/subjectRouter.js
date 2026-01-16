@@ -3,9 +3,9 @@ import subjectController from '../controllers/subjectController.js';
 
 var subjectRouter = Router();
 
-subjectRouter.get('/:id', subjectController.getOne);
-
 subjectRouter.get('/', subjectController.getAll);
+
+subjectRouter.get('/:id', subjectController.getOne);
 
 subjectRouter.post('/', subjectController.create);
 
