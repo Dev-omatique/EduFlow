@@ -115,7 +115,7 @@ const getTypeAll = async (req, res, next) => {
 
         // --- Configuration de la requête globale ---
         const pageNum = Number(page) || 1;
-        const limitNum = Number(limit) || 10;
+        const limitNum = Number(limit) || 50;
         
         const queryOptions = {
             where,
