@@ -3,6 +3,18 @@ import db from '../models/index.js'
 const { Permission } = db
 
 /**
+ * Récupère toutes les entrées de Permission
+ */
+const getAll = async (req,res,next) =>{
+    try{
+        const permission = await Permission.findAll()
+        res.status(200).json(permission)
+    }catch(err){
+        next(err)
+    }
+};
+
+/**
  * Crée une nouvelle entrée Permission
  */
 const create = async (req, res, next) => {
@@ -14,4 +26,4 @@ const create = async (req, res, next) => {
     }
 };
 
-export default { create, update, delete: remove, getAll };
+export default { getAll, create, update, delete: remove };
