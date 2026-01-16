@@ -107,12 +107,6 @@ const getTypeAll = async (req, res, next) => {
         // --- Construction dynamique des filtres ---
         const where = { [idKey]: Number(id) };
 
-        if (startDate || endDate) {
-            where.dueDate = {};
-            if (startDate) where.dueDate[Op.gte] = startDate;
-            if (endDate) where.dueDate[Op.lte] = endDate;
-        }
-
         // --- Configuration de la requête globale ---
         const pageNum = Number(page) || 1;
         const limitNum = Number(limit) || 50;
@@ -121,10 +115,10 @@ const getTypeAll = async (req, res, next) => {
             where,
             limit: limitNum,
             offset: (pageNum - 1) * limitNum,
-            order: [['dueDate', 'DESC']]
+            order: [['createdAt', 'DESC']]
         };
 
-        const { count, rows } = await Exam.findAndCountAll(queryOptions);
+        const { count, rows } = await User.findAndCountAll(queryOptions);
 
         res.json({
             data: rows,
@@ -141,4 +135,4 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default { getOne, getAll, create, update, remove, getTypeAll };
+export default { getOne, getAll, create, update, delete: remove, getTypeAll };
