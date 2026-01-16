@@ -77,4 +77,18 @@ const update = async (req, res, next) => {
     }
 };
 
+/**
+ * Supprime une entrée via son ID
+ */
+const remove = async (req, res, next) => {
+    try {
+        await User.destroy({
+            where: { id: req.params.id },
+        });
+        res.json({ message: "successful delete" });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default { };
