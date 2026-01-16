@@ -11,4 +11,13 @@ const getAll = async (req,res,next) =>{
     }
 };
 
+const create = async (req, res, next) => {
+  try {
+    const room = await Room.create(req.body);
+    res.status(201).json(room);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {  };
