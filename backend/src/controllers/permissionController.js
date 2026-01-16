@@ -26,4 +26,18 @@ const create = async (req, res, next) => {
     }
 };
 
+/**
+ * Met à jour une entrée existante via son ID
+ */
+const update = async (req, res, next) => {
+    try {
+        await Permission.update(req.body, {
+            where: { id: req.params.id },
+        });
+        res.json({ message: "successful update" });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default { getAll, create, update, delete: remove };
