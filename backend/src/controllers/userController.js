@@ -51,4 +51,16 @@ const getAll = async (req, res, next) => {
     }
 };
 
+/**
+ * Crée une nouvelle entrée User
+ */
+const create = async (req, res, next) => {
+    try {
+        const user = await User.create(req.body);
+        res.status(201).json(user);
+    } catch (err) {
+        next(err); // Transmet l'erreur au middleware de gestion d'erreurs
+    }
+};
+
 export default { };
