@@ -11,8 +11,4 @@ permissionRouter.put('/:id', permissionController.update);
 
 permissionRouter.delete('/:id', permissionController.delete);
 
-// ---------------------------------------------------- //
-
-permissionRouter.get('/:type/:id', permissionController.getTypeAll);
-
 export default permissionRouter;
