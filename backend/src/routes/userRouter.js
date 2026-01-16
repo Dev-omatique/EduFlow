@@ -15,6 +15,6 @@ userRouter.delete('/:id', userController.delete);
 
 // ---------------------------------------------------- //
 
-userRouter.get('/:type/:id', userController.getTypeAll);// if type = student or teacher
+userRouter.get('/:type/:id', userController.getTypeAll);// if type = Role
 
 export default userRouter;
