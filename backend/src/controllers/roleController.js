@@ -3,7 +3,6 @@ import db from '../models/index.js'
 
 const { Roles } = db
 
-
 const getAll = async (req,res,next) =>{
     try{
         const roles = await Roles.findAll()
