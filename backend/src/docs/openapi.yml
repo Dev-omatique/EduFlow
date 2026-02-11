@@ -1,0 +1,211 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: API Gestion
+  description: API de gestion des utilisateurs et des matières
+
+servers:
+  - url: http://localhost:3001
+
+paths:
+
+  /api/users:
+    get:
+      summary: Récupérer tous les utilisateurs
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+    post:
+      summary: Créer un utilisateur
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: Utilisateur créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/{type}/{id}:
+    get:
+      summary: Récupérer un utilisateur selon un type et un ID
+      operationId: getUserByTypeAndId
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "1"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+  /api/users/{id}:
+    get:
+      summary: Récupérer un utilisateur par ID
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+    put:
+      summary: Mettre à jour un utilisateur
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+    delete:
+      summary: Supprimer un utilisateur
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Utilisateur supprimé
+
+  /api/subjects:
+    get:
+      summary: Récupérer toutes les matières
+      operationId: getAllSubjects
+      responses:
+        '200':
+          description: Liste des matières
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subject'
+
+    post:
+      summary: Créer une matière
+      operationId: createSubject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSubject'
+      responses:
+        '201':
+          description: Matière créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+
+  /api/subjects/{id}:
+    get:
+      summary: Récupérer une matière par ID
+      operationId: getSubjectById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Matière trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+        '404':
+          description: Matière non trouvée
+
+    put:
+      summary: Mettre à jour une matière
+      operationId: updateSubject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewSubject'
+      responses:
+        '200':
+          description: Matière mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subject'
+
+    delete:
+      summary: Supprimer une matière
+      operationId: deleteSubject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Matière supprimée
