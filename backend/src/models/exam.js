@@ -10,6 +10,7 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      models.Exam.belongsTo(models.Note, { targetKey: "examId" });
     }
   }
   Exam.init({
@@ -21,7 +22,7 @@ export default (sequelize, DataTypes) => {
     isGraded: DataTypes.BOOLEAN,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,
-    classId: DataTypes.INTEGER
+    gradeId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Exam',

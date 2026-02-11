@@ -17,7 +17,7 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Subject',
-    tableName: 'subjetcs',
+    tableName: 'subjects',
     freezeTableName: true,
   });
   return Subject;
