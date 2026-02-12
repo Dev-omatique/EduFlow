@@ -8,6 +8,8 @@ servers:
   - url: http://localhost:3001
 
 tags:
+- name: Attendances
+  description: Gestion des présencess
 - name: Users
   description: Gestion des utilisateurs
 - name: Subjects
@@ -15,6 +17,69 @@ tags:
 
 
 paths:
+
+#################################{ ATTENDANCES }###########################################
+
+  /api/attendances:
+
+    post:
+      tags:
+        - Attendances
+      summary: Créer une présence
+      operationId: createAttendance
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAttendance'
+      responses:
+        '201':
+          description: Présence créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+
+    put:
+      tags:
+        - Attendances
+      summary: Mettre à jour une présence
+      operationId: updateAttendance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewAttendance'
+      responses:
+        '200':
+          description: Présence mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attendance'
+
+    delete:
+      tags:
+        - Attendances
+      summary: Supprimer une présence
+      operationId: deleteAttendance
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Présence supprimée
 
 #################################{ USERS }###########################################
 
@@ -245,3 +310,74 @@ paths:
           description: Matière supprimée
 
 #################################{ OTHERS }###########################################
+
+components:
+  schemas:
+    # --- Modèles pour les Utilisateurs ---
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        type:
+          type: string
+    NewUser:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        type:
+          type: string
+
+    # --- Modèles pour les Présences ---
+    Attendance:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        subjectId:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+    NewAttendance:
+      type: object
+      required:
+        - userId
+        - subjectId
+      properties:
+        userId:
+          type: integer
+        subjectId:
+          type: integer
+        status:
+          type: string
+
+    # --- Modèles pour les Matières ---
+    Subject:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    NewSubject:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
