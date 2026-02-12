@@ -6,8 +6,7 @@
   "scripts": {
     "start": "node ./src/bin/www",
     "dev": "nodemon ./src/bin/www",
-    "migrate": "sequelize-cli db:migrate",
-    "start:prod": "sequelize-cli db:migrate && node ./src/bin/www"
+    "migrate": "sequelize-cli db:migrate"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",

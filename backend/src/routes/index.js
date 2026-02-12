@@ -21,12 +21,12 @@ const router = Router();
 
 // publique routes
 router.use('/auth', authRoutes);
+router.use('/users', userRouter);
 
 // activation des routes priver
 router.use(authRequired);
 
 // route priver (besoin token)
-router.use('/users', userRouter);
 router.use('/attendances', attendanceRouter);
 router.use('/blocknotes', blocknoteRouter);
 router.use('/grades', gradeRouter);
