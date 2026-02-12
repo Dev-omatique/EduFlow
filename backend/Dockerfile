@@ -8,8 +8,8 @@ WORKDIR /usr/src/app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 
-# Copy only necessary source folder
-COPY src ./src
+# Copy entire project (migrations + config + src etc)
+COPY . .
 
 EXPOSE 3001
 
