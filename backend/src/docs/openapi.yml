@@ -5,7 +5,7 @@ info:
   description: API de gestion des utilisateurs et des matières
 
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3001
 
 paths:
 
@@ -50,7 +50,7 @@ paths:
           required: true
           schema:
             type: string
-            example: roleId : 1,2,3
+            example: "1"
         - name: id
           in: path
           required: true
