@@ -10,6 +10,10 @@ servers:
 tags:
 - name: Attendances
   description: Gestion des présencess
+- name: Auth
+  description: Authentification et inscription
+- name: BlockNotes
+  description: Gestion du bloc-notes personnel des utilisateurs
 - name: Users
   description: Gestion des utilisateurs
 - name: Subjects
@@ -80,6 +84,167 @@ paths:
       responses:
         '204':
           description: Présence supprimée
+
+  /api/attendances/{type}/{id}:
+    get:
+      tags:
+        - Attendances
+      summary: Récupérer un utilisateur selon un type et un ID
+      operationId: getAttendanceByTypeAndId
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "(student, cours)"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Utilisateur non trouvé
+
+#################################{ AUTH }###########################################
+
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Inscrire un nouvel utilisateur
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Données manquantes (username, email ou password)
+        '409':
+          description: Username ou Email déjà utilisé
+
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Se connecter pour obtenir un token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Email ou mot de passe manquant
+        '401':
+          description: Identifiants invalides
+
+#################################{ BLOCK-NOTES }###########################################
+
+  /api/blocknotes/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: ID de l'utilisateur propriétaire du notepad
+        schema:
+          type: integer
+
+    get:
+      tags:
+        - BlockNotes
+      summary: Récupérer le notepad d'un utilisateur
+      operationId: getOneBlockNote
+      responses:
+        '200':
+          description: Notepad trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '404':
+          description: L'utilisateur n'a pas encore de notepad
+
+    post:
+      tags:
+        - BlockNotes
+      summary: Créer l'unique notepad pour un utilisateur
+      operationId: createBlockNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBlockNote'
+      responses:
+        '201':
+          description: Notepad créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '409':
+          description: Un utilisateur ne peut avoir qu'un seul notepad
+
+    put:
+      tags:
+        - BlockNotes
+      summary: Mettre à jour le contenu du notepad
+      operationId: updateBlockNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBlockNote'
+      responses:
+        '200':
+          description: Notepad mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '404':
+          description: Notepad introuvable
+
+    delete:
+      tags:
+        - BlockNotes
+      summary: Supprimer le notepad
+      operationId: deleteBlockNote
+      responses:
+        '204':
+          description: Notepad supprimé avec succès
+        '404':
+          description: Rien à supprimer
 
 #################################{ USERS }###########################################
 
@@ -380,4 +545,93 @@ components:
         - name
       properties:
         name:
+          type: string
+
+# --- Modèles pour l'Authentification ---
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        address:
+          type: string
+        gradeId:
+          type: integer
+        roleId:
+          type: integer
+
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            email:
+              type: string
+
+# --- Modèles pour les BlockNotes ---
+    BlockNote:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+          example: "Mes notes de cours"
+        content:
+          type: string
+          example: "Contenu de la note..."
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    NewBlockNote:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
           type: string
