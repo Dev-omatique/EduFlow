@@ -4,6 +4,7 @@ ARG NODE_VERSION=24.11.1
 FROM node:${NODE_VERSION}-alpine
 
 ENV NODE_ENV=production
+ENV NODE_ENV=postgresql://eduflow:LaManuEduflow2026@51.254.134.73:5432/eduflow_dev
 WORKDIR /usr/src/app
 
 RUN --mount=type=bind,source=package.json,target=package.json \
