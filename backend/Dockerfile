@@ -1,12 +1,9 @@
 # syntax=docker/dockerfile:1
 
 ARG NODE_VERSION=24.11.1
-
 FROM node:${NODE_VERSION}-alpine
 
-# Use production node environment by default.
-ENV NODE_ENV production
-
+ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
 RUN --mount=type=bind,source=package.json,target=package.json \
@@ -15,10 +12,9 @@ RUN --mount=type=bind,source=package.json,target=package.json \
     npm ci --omit=dev
 
 USER node
-
 COPY . .
 
 EXPOSE 3001
 
-# 👇 On ajoute JUSTE la migration avant le start
-CMD sh -c "npx sequelize-cli db:migrate && npm start docker"
+# migrations AU RUN (donc après injection env Dockploy)
+CMD ["sh", "-c", "npx sequelize-cli db:migrate && npm start docker"]
