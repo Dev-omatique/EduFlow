@@ -18,7 +18,7 @@ export default (sequelize, DataTypes) => {
     roomId: DataTypes.INTEGER,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,
-    classId: DataTypes.INTEGER
+    gradeId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Course',
