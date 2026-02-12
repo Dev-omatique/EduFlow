@@ -24,7 +24,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRouter);
 
 // activation des routes priver
-router.use(authRequired);
+// router.use(authRequired);
 
 // route priver (besoin token)
 router.use('/attendances', attendanceRouter);
