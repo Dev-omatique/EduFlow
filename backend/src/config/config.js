@@ -1,13 +1,19 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-const baseConfig = {
-  use_env_variable: "DATABASE_URL",
-  dialect: "postgres",
-};
-
 export default {
-  development: baseConfig,
-  preprod: baseConfig,
-  production: baseConfig,
+  development: {
+    use_env_variable: "DATABASE_URL",
+    dialect: "postgres",
+  },
+
+  preprod: {
+    use_env_variable: "DATABASE_URL",
+    dialect: "postgres",
+  },
+
+  production: {
+    use_env_variable: "DATABASE_URL",
+    dialect: "postgres",
+  },
 };
