@@ -21,6 +21,16 @@ const router = useRouter();
 
 const registerFields = [
     { 
+        name: "fristname", 
+        type: "text", 
+        placeholder: "prenom" 
+    },
+    { 
+        name: "lastname", 
+        type: "text", 
+        placeholder: "nom" 
+    },
+    { 
         name: "username", 
         type: "text", 
         placeholder: "Nom d'utilisateur" 
@@ -39,18 +49,23 @@ const registerFields = [
         name: "confirmPassword", 
         type: "password", 
         placeholder: "Confirmer le mot de passe" 
-    },
+    }
 ];
 
 const handleRegister = async (values: z.infer<typeof registerSchema>) => {
         try {
-        const response = await fetch("http://localhost:3001/api/auth/register", {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        const apiUrl = `${baseUrl}/api/auth/register`;
+        const response = await fetch(apiUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
             username: values.username,
             email: values.email,
             password: values.password,
+            fristName: values.fristname,
+            lastName: values.lastname,
+            
             }),
             credentials: "include",
         });
