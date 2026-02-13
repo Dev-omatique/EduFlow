@@ -73,7 +73,7 @@ export const register = async (req, res, next) => {
 };
 
 /**
- * LOGIN
+ * LOGIN avec Cookie HttpOnly
  */
 export const login = async (req, res, next) => {
   try {
@@ -93,7 +93,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // 🔐 Uniquement comparaison bcrypt
     const ok = await bcrypt.compare(password, user.password);
 
     if (!ok) {
@@ -108,7 +107,21 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    return res.json({ token });
+    // --- MODIFICATION ICI ---
+    res.cookie('access_token', token, {
+      httpOnly: true,                // Empêche le JS côté client de lire le cookie
+      secure: process.env.NODE_ENV === 'production', // true en HTTPS uniquement (prod)
+      sameSite: 'lax',               // Protection CSRF standard
+      maxAge: 3600000,               // 1 heure en millisecondes (doit matcher l'expiresIn du JWT)
+      path: '/',                     // Disponible sur tout ton site
+    });
+
+    // On ne renvoie plus le token dans le JSON pour plus de sécurité
+    return res.status(200).json({ 
+      message: "Connexion réussie",
+      user: { id: user.id, email: user.email } // Optionnel : renvoie les infos de base
+    });
+    
   } catch (err) {
     return next(err);
   }
