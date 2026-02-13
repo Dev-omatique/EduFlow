@@ -2,94 +2,69 @@ openapi: 3.0.0
 info:
   version: 1.0.0
   title: API Gestion
-  description: API de gestion des utilisateurs et des matières
+  description: API de gestion des utilisateurs, des cours et des matières.
 
 servers:
   - url: http://localhost:3001
 
+tags:
+  - name: Attendances
+    description: Gestion des présences
+  - name: Auth
+    description: Authentification et inscription
+  - name: BlockNotes
+    description: Gestion du bloc-notes personnel
+  - name: Courses
+    description: Gestion de l'emploi du temps
+  - name: Exams
+    description: Gestion des examens et des contrôles
+  - name: Grades
+    description: Gestion des classes ou niveaux scolaires
+  - name: News
+    description: Gestion des actualités et annonces
+  - name: Notes
+    description: Gestion des notes (résultats d'examens)
+  - name: Penalties
+    description: Gestion des sanctions et mesures disciplinaires
+  - name: Permissions
+    description: Gestion des droits et autorisations du système
+  - name: Roles
+    description: Gestion des rôles utilisateurs (Admin, Enseignant, Elève, etc.)
+  - name: Rooms
+    description: Gestion des salles de classe et infrastructures
+  - name: Subjects
+    description: Gestion des matières
+  - name: Users
+    description: Gestion des utilisateurs
+
 paths:
-
-  /api/users:
-    get:
-      summary: Récupérer tous les utilisateurs
-      operationId: getAllUsers
-      responses:
-        '200':
-          description: Liste des utilisateurs
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-
+  # ---------------------------------------------------------------------------
+  # ATTENDANCES
+  # ---------------------------------------------------------------------------
+  /api/attendances:
     post:
-      summary: Créer un utilisateur
-      operationId: createUser
+      tags:
+        - Attendances
+      summary: Créer une présence
+      operationId: createAttendance
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              $ref: '#/components/schemas/NewAttendance'
       responses:
         '201':
-          description: Utilisateur créé
+          description: Présence créée
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-
-  /api/users/{type}/{id}:
-    get:
-      summary: Récupérer un utilisateur selon un type et un ID
-      operationId: getUserByTypeAndId
-      parameters:
-        - name: type
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "1"
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-            example: 1
-      responses:
-        '200':
-          description: Utilisateur trouvé
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: Utilisateur non trouvé
-
-  /api/users/{id}:
-    get:
-      summary: Récupérer un utilisateur par ID
-      operationId: getUserById
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: Utilisateur trouvé
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: Utilisateur non trouvé
-
+                $ref: '#/components/schemas/Attendance'
     put:
-      summary: Mettre à jour un utilisateur
-      operationId: updateUser
+      tags:
+        - Attendances
+      summary: Mettre à jour une présence
+      operationId: updateAttendance
       parameters:
         - name: id
           in: path
@@ -101,18 +76,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewUser'
+              $ref: '#/components/schemas/NewAttendance'
       responses:
         '200':
-          description: Utilisateur mis à jour
+          description: Présence mise à jour
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
-
+                $ref: '#/components/schemas/Attendance'
     delete:
-      summary: Supprimer un utilisateur
-      operationId: deleteUser
+      tags:
+        - Attendances
+      summary: Supprimer une présence
+      operationId: deleteAttendance
       parameters:
         - name: id
           in: path
@@ -121,10 +97,383 @@ paths:
             type: integer
       responses:
         '204':
-          description: Utilisateur supprimé
+          description: Présence supprimée
 
+  /api/attendances/{type}/{id}:
+    get:
+      tags:
+        - Attendances
+      summary: Récupérer des présences selon un type et un ID
+      operationId: getAttendanceByTypeAndId
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "student"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Présences trouvées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User' # Vérifier si ce n'est pas plutôt une liste d'Attendance
+        '404':
+          description: Non trouvé
+
+  # ---------------------------------------------------------------------------
+  # AUTH
+  # ---------------------------------------------------------------------------
+  /api/auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Se connecter pour obtenir un token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+        '400':
+          description: Email ou mot de passe manquant
+        '401':
+          description: Identifiants invalides
+
+  /api/auth/register:
+    post:
+      tags:
+        - Auth
+      summary: Inscrire un nouvel utilisateur
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Utilisateur créé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: Données manquantes
+        '409':
+          description: Username ou Email déjà utilisé
+
+  # ---------------------------------------------------------------------------
+  # BLOCK-NOTES
+  # ---------------------------------------------------------------------------
+  /api/blocknotes/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: ID de l'utilisateur propriétaire
+        schema:
+          type: integer
+    get:
+      tags:
+        - BlockNotes
+      summary: Récupérer le notepad d'un utilisateur
+      operationId: getOneBlockNote
+      responses:
+        '200':
+          description: Notepad trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '404':
+          description: Pas de notepad existant
+    post:
+      tags:
+        - BlockNotes
+      summary: Créer l'unique notepad pour un utilisateur
+      operationId: createBlockNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBlockNote'
+      responses:
+        '201':
+          description: Notepad créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '409':
+          description: Un utilisateur ne peut avoir qu'un seul notepad
+    put:
+      tags:
+        - BlockNotes
+      summary: Mettre à jour le contenu du notepad
+      operationId: updateBlockNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewBlockNote'
+      responses:
+        '200':
+          description: Notepad mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BlockNote'
+        '404':
+          description: Notepad introuvable
+    delete:
+      tags:
+        - BlockNotes
+      summary: Supprimer le notepad
+      operationId: deleteBlockNote
+      responses:
+        '204':
+          description: Notepad supprimé
+        '404':
+          description: Rien à supprimer
+
+  # ---------------------------------------------------------------------------
+  # COURSES
+  # ---------------------------------------------------------------------------
+  /api/courses:
+    post:
+      tags:
+        - Courses
+      summary: Créer un nouveau cours
+      operationId: createCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCourse'
+      responses:
+        '201':
+          description: Cours créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+
+  /api/courses/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Courses
+      summary: Modifier un cours
+      operationId: updateCourse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewCourse'
+      responses:
+        '200':
+          description: Mise à jour réussie
+    delete:
+      tags:
+        - Courses
+      summary: Supprimer un cours
+      operationId: deleteCourse
+      responses:
+        '200':
+          description: Suppression réussie
+
+  /api/courses/{type}/{id}:
+    get:
+      tags:
+        - Courses
+      summary: Récupérer les cours par type (enseignant ou classe)
+      description: Filtre l'emploi du temps avec option de dates.
+      operationId: getTypeAllCourses
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [teacher, grade]
+          description: "Recherche par 'teacher' ou 'grade'"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Liste des cours
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+        '400':
+          description: Type invalide
+
+# ---------------------------------------------------------------------------
+  # GRADES
+  # ---------------------------------------------------------------------------
+  /api/grades:
+    post:
+      tags:
+        - Grades
+      summary: Créer une nouvelle classe/grade
+      operationId: createGrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewGrade'
+      responses:
+        '201':
+          description: Grade créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+
+  /api/grades/type:
+    get:
+      tags:
+        - Grades
+      summary: Récupérer toutes les classes (avec filtres optionnels)
+      operationId: getTypeAllGrades
+      parameters:
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filtrer par date de début (startTime >= startDate)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filtrer par date de fin (startTime <= endDate)
+      responses:
+        '200':
+          description: Liste des grades récupérée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Grade'
+
+  /api/grades/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Grades
+      summary: Récupérer une classe par ID
+      operationId: getOneGrade
+      responses:
+        '200':
+          description: Grade trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Grade'
+        '404':
+          description: Grade non trouvé
+    put:
+      tags:
+        - Grades
+      summary: Mettre à jour une classe
+      operationId: updateGrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewGrade'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Grades
+      summary: Supprimer une classe
+      operationId: deleteGrade
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+  # ---------------------------------------------------------------------------
+  # SUBJECTS
+  # ---------------------------------------------------------------------------
   /api/subjects:
     get:
+      tags:
+        - Subjects
       summary: Récupérer toutes les matières
       operationId: getAllSubjects
       responses:
@@ -136,8 +485,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Subject'
-
     post:
+      tags:
+        - Subjects
       summary: Créer une matière
       operationId: createSubject
       requestBody:
@@ -156,6 +506,8 @@ paths:
 
   /api/subjects/{id}:
     get:
+      tags:
+        - Subjects
       summary: Récupérer une matière par ID
       operationId: getSubjectById
       parameters:
@@ -173,8 +525,9 @@ paths:
                 $ref: '#/components/schemas/Subject'
         '404':
           description: Matière non trouvée
-
     put:
+      tags:
+        - Subjects
       summary: Mettre à jour une matière
       operationId: updateSubject
       parameters:
@@ -196,8 +549,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Subject'
-
     delete:
+      tags:
+        - Subjects
       summary: Supprimer une matière
       operationId: deleteSubject
       parameters:
@@ -209,3 +563,1333 @@ paths:
       responses:
         '204':
           description: Matière supprimée
+
+
+  # ---------------------------------------------------------------------------
+  # EXAMS
+  # ---------------------------------------------------------------------------
+  /api/exams:
+    post:
+      tags:
+        - Exams
+      summary: Créer un nouvel examen
+      operationId: createExam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewExam'
+      responses:
+        '201':
+          description: Examen créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+
+  /api/exams/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Exams
+      summary: Récupérer un examen par ID
+      description: Attention, selon le contrôleur actuel, cela récupère le premier examen lié au gradeId fourni.
+      operationId: getExam
+      responses:
+        '200':
+          description: Examen trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exam'
+        '404':
+          description: Examen non trouvé
+    put:
+      tags:
+        - Exams
+      summary: Mettre à jour un examen
+      operationId: updateExam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewExam'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Exams
+      summary: Supprimer un examen
+      operationId: deleteExam
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+
+  /api/exams/{type}/{id}:
+    get:
+      tags:
+        - Exams
+      summary: Récupérer les examens par type (enseignant ou cours)
+      description: Filtre les examens avec option de dates sur le champ 'dueDate'.
+      operationId: getExamsByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [teacher, cours]
+          description: "Le type de recherche : 'teacher' (pour teacherId) ou 'cours' (pour gradeId)"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID correspondant au type choisi
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filtrer à partir de cette date (dueDate >= startDate)
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+          description: Filtrer jusqu'à cette date (dueDate <= endDate)
+      responses:
+        '200':
+          description: Liste des examens trouvés
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exam'
+        '400':
+          description: Type invalide
+
+# ---------------------------------------------------------------------------
+  # NEWS
+  # ---------------------------------------------------------------------------
+  /api/news:
+    get:
+      tags:
+        - News
+      summary: Récupérer toutes les actualités
+      operationId: getAllNews
+      responses:
+        '200':
+          description: Liste des actualités récupérée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/News'
+    post:
+      tags:
+        - News
+      summary: Créer une actualité
+      operationId: createNews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewNews'
+      responses:
+        '201':
+          description: Actualité créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+
+  /api/news/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - News
+      summary: Récupérer une actualité par ID
+      operationId: getOneNews
+      responses:
+        '201': # Status 201 utilisé dans ton contrôleur
+          description: Actualité trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/News'
+        '404':
+          description: Actualité introuvable
+    put:
+      tags:
+        - News
+      summary: Mettre à jour une actualité
+      operationId: updateNews
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewNews'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - News
+      summary: Supprimer une actualité
+      operationId: deleteNews
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+  # ---------------------------------------------------------------------------
+  # USERS
+  # ---------------------------------------------------------------------------
+  /api/users:
+    get:
+      tags:
+        - Users
+      summary: Récupérer tous les utilisateurs
+      operationId: getAllUsers
+      responses:
+        '200':
+          description: Liste des utilisateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      tags:
+        - Users
+      summary: Créer un utilisateur
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '201':
+          description: Utilisateur créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /api/users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Récupérer un utilisateur par ID
+      operationId: getUserById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Non trouvé
+    put:
+      tags:
+        - Users
+      summary: Mettre à jour un utilisateur
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewUser'
+      responses:
+        '200':
+          description: Utilisateur mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags:
+        - Users
+      summary: Supprimer un utilisateur
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Utilisateur supprimé
+
+  /api/users/{type}/{id}:
+    get:
+      tags:
+        - Users
+      summary: Récupérer un utilisateur selon un type et un ID
+      operationId: getUserByTypeAndId
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "admin"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Utilisateur trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Non trouvé
+
+# ---------------------------------------------------------------------------
+  # NOTES
+  # ---------------------------------------------------------------------------
+  /api/notes:
+    post:
+      tags:
+        - Notes
+      summary: Enregistrer une nouvelle note
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewNote'
+      responses:
+        '201':
+          description: Note créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /api/notes/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Notes
+      summary: Modifier une note existante
+      operationId: updateNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewNote'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Notes
+      summary: Supprimer une note
+      operationId: deleteNote
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+
+  /api/notes/{type}/{id}:
+    get:
+      tags:
+        - Notes
+      summary: Récupérer les notes par type (examen, étudiant ou matière)
+      description: |
+        Permet de filtrer les notes :
+        - Par examen (type='exam')
+        - Par étudiant (type='student')
+        - Par matière (type='subject') -> utilise une jointure avec les examens.
+      operationId: getNotesByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [exam, student, subject]
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID correspondant au type choisi
+      responses:
+        '200':
+          description: Liste des notes trouvées
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+        '400':
+          description: Type invalide
+# ---------------------------------------------------------------------------
+  # PENALTIES
+  # ---------------------------------------------------------------------------
+  /api/penalties:
+    get:
+      tags:
+        - Penalties
+      summary: Récupérer toutes les sanctions
+      operationId: getAllPenalties
+      responses:
+        '200':
+          description: Liste complète récupérée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Penalty'
+    post:
+      tags:
+        - Penalties
+      summary: Créer une nouvelle sanction
+      operationId: createPenalty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPenalty'
+      responses:
+        '201':
+          description: Sanction créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Penalty'
+
+  /api/penalties/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Penalties
+      summary: Récupérer une sanction par ID
+      operationId: getOnePenalty
+      responses:
+        '201': # Fidèle à ton code controller
+          description: Sanction trouvée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Penalty'
+    put:
+      tags:
+        - Penalties
+      summary: Mettre à jour une sanction
+      operationId: updatePenalty
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPenalty'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Penalties
+      summary: Supprimer une sanction
+      operationId: deletePenalty
+      responses:
+        '200':
+          description: Suppression réussie
+
+  /api/penalties/{type}/{id}:
+    get:
+      tags:
+        - Penalties
+      summary: Récupérer les sanctions par responsable ou par étudiant
+      description: Filtre les sanctions selon le rôle et permet un filtrage par date sur 'dueDate'.
+      operationId: getPenaltiesByType
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [responsible, student]
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Liste filtrée récupérée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Penalty'
+        '400':
+          description: Type invalide
+# ---------------------------------------------------------------------------
+  # PERMISSIONS
+  # ---------------------------------------------------------------------------
+  /api/permissions:
+    get:
+      tags:
+        - Permissions
+      summary: Liste toutes les permissions
+      operationId: getAllPermissions
+      responses:
+        '200':
+          description: Liste récupérée avec succès
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Permission'
+    post:
+      tags:
+        - Permissions
+      summary: Créer une nouvelle permission
+      operationId: createPermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPermission'
+      responses:
+        '201':
+          description: Permission créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+
+  /api/permissions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Permissions
+      summary: Mettre à jour une permission
+      operationId: updatePermission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPermission'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Permissions
+      summary: Supprimer une permission
+      operationId: deletePermission
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+# ---------------------------------------------------------------------------
+  # ROLES
+  # ---------------------------------------------------------------------------
+  /api/roles:
+    get:
+      tags:
+        - Roles
+      summary: Récupérer tous les rôles
+      operationId: getAllRoles
+      responses:
+        '200':
+          description: Liste des rôles récupérée
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      tags:
+        - Roles
+      summary: Créer un nouveau rôle
+      operationId: createRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRole'
+      responses:
+        '201':
+          description: Rôle créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+
+  /api/roles/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Roles
+      summary: Mettre à jour un rôle
+      operationId: updateRole
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRole'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Roles
+      summary: Supprimer un rôle
+      operationId: deleteRole
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+# ---------------------------------------------------------------------------
+  # ROOMS
+  # ---------------------------------------------------------------------------
+  /api/rooms:
+    get:
+      tags:
+        - Rooms
+      summary: Récupérer toutes les salles (avec pagination)
+      operationId: getAllRooms
+      parameters:
+        - name: page
+          in: query
+          description: Numéro de la page
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Nombre d'éléments par page
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Liste paginée des salles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Room'
+                  pagination:
+                    type: object
+                    properties:
+                      totalItems:
+                        type: integer
+                      totalPages:
+                        type: integer
+                      currentPage:
+                        type: integer
+                      itemsPerPage:
+                        type: integer
+    post:
+      tags:
+        - Rooms
+      summary: Créer une nouvelle salle
+      operationId: createRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRoom'
+      responses:
+        '201':
+          description: Salle créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Room'
+
+  /api/rooms/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      tags:
+        - Rooms
+      summary: Mettre à jour une salle
+      operationId: updateRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewRoom'
+      responses:
+        '200':
+          description: Mise à jour réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful update"
+    delete:
+      tags:
+        - Rooms
+      summary: Supprimer une salle
+      operationId: deleteRoom
+      responses:
+        '200':
+          description: Suppression réussie
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "successful delete"
+
+
+
+
+
+
+
+
+components:
+  schemas:
+
+    # --- Attendance (Présences) ---
+    Attendance:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        subjectId:
+          type: integer
+        date:
+          type: string
+          format: date-time
+        status:
+          type: string
+    NewAttendance:
+      type: object
+      required:
+        - userId
+        - subjectId
+      properties:
+        userId:
+          type: integer
+        subjectId:
+          type: integer
+        status:
+          type: string
+
+    # --- Authentication ---
+    AuthResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        token:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            username:
+              type: string
+            email:
+              type: string
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        firstName:
+          type: string
+        lastName:
+          type: string
+        birthDate:
+          type: string
+          format: date
+        address:
+          type: string
+        gradeId:
+          type: integer
+        roleId:
+          type: integer
+
+    # --- BlockNote (Notes personnelles) ---
+    BlockNote:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+          example: "Mes notes de cours"
+        content:
+          type: string
+          example: "Contenu de la note..."
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NewBlockNote:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+
+    # --- Course (Cours / Emploi du temps) ---
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        subjectId:
+          type: integer
+        teacherId:
+          type: integer
+        gradeId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        room:
+          type: string
+          example: "Salle B204"
+    NewCourse:
+      type: object
+      required:
+        - subjectId
+        - teacherId
+        - gradeId
+        - startTime
+        - endTime
+      properties:
+        subjectId:
+          type: integer
+        teacherId:
+          type: integer
+        gradeId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        room:
+          type: string
+
+    # --- Exam (Examens / Évaluations) ---
+    Exam:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: "Partiel de Mathématiques"
+        subjectId:
+          type: integer
+        teacherId:
+          type: integer
+        gradeId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        coefficient:
+          type: number
+          example: 2.0
+    NewExam:
+      type: object
+      required:
+        - title
+        - subjectId
+        - teacherId
+        - gradeId
+        - dueDate
+      properties:
+        title:
+          type: string
+        subjectId:
+          type: integer
+        teacherId:
+          type: integer
+        gradeId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        coefficient:
+          type: number
+
+    # --- Grade (Classes / Niveaux) ---
+    Grade:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "Terminale A"
+        startTime:
+          type: string
+          format: date-time
+        level:
+          type: string
+          example: "Lycée"
+    NewGrade:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        level:
+          type: string
+
+    # --- News (Actualités) ---
+    News:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+          example: "Fermeture exceptionnelle"
+        content:
+          type: string
+          example: "L'établissement sera fermé ce vendredi..."
+        authorId:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NewNews:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        authorId:
+          type: integer
+
+    # --- Note (Notes académiques) ---
+    Note:
+      type: object
+      properties:
+        id:
+          type: integer
+        value:
+          type: number
+          format: float
+          example: 15.5
+        studentId:
+          type: integer
+        examId:
+          type: integer
+        remarks:
+          type: string
+          example: "Bon travail, continuez ainsi."
+        createdAt:
+          type: string
+          format: date-time
+    NewNote:
+      type: object
+      required:
+        - value
+        - studentId
+        - examId
+      properties:
+        value:
+          type: number
+          format: float
+        studentId:
+          type: integer
+        examId:
+          type: integer
+        remarks:
+          type: string
+
+    # --- Penalty (Sanctions) ---
+    Penalty:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+          example: "Heure de colle"
+        description:
+          type: string
+          example: "Comportement perturbateur en classe."
+        studentId:
+          type: integer
+        responsibleId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    NewPenalty:
+      type: object
+      required:
+        - type
+        - studentId
+        - responsibleId
+      properties:
+        type:
+          type: string
+        description:
+          type: string
+        studentId:
+          type: integer
+        responsibleId:
+          type: integer
+        dueDate:
+          type: string
+          format: date-time
+
+    # --- Permission ---
+    Permission:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "edit_grades"
+        description:
+          type: string
+          example: "Autorise la modification des notes."
+    NewPermission:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    # --- Role ---
+    Role:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "TEACHER"
+        description:
+          type: string
+          example: "Accès à la gestion des notes et des cours."
+    NewRole:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+
+    # --- Room (Salles) ---
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "Salle B-204"
+        capacity:
+          type: integer
+          example: 30
+        description:
+          type: string
+          example: "Laboratoire de SVT avec paillasses."
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NewRoom:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        capacity:
+          type: integer
+        description:
+          type: string
+
+    # --- Subject (Matières) ---
+    Subject:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+    NewSubject:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+
+    # --- User (Utilisateurs) ---
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        type:
+          type: string
+    NewUser:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        type:
+          type: string
