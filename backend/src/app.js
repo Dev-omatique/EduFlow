@@ -11,7 +11,6 @@ import errorHandler from './middlewares/errorHandler.js';
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import YAML from 'js-yaml';
-import cookieParser from "cookie-parser";
 
 
 var app = express();
