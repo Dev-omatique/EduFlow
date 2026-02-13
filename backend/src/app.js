@@ -11,6 +11,8 @@ import errorHandler from './middlewares/errorHandler.js';
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import YAML from 'js-yaml';
+import cookieParser from "cookie-parser";
+
 
 var app = express();
 
@@ -26,7 +28,7 @@ const swaggerConfig = YAML.load(fileContents);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
 
-
+app.use(cookieParser());
 app.use(logger('dev'));
 app.use(cors())
 app.use(express.json());
