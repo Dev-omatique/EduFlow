@@ -1,5 +1,6 @@
 import express, { json, urlencoded } from 'express';
 import * as dotenv from 'dotenv'
+dotenv.config()
 import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
@@ -15,7 +16,6 @@ import YAML from 'js-yaml';
 
 var app = express();
 
-dotenv.config()
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,8 +28,8 @@ const swaggerConfig = YAML.load(fileContents);
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
 app.use(logger('dev'));
 app.use(cors({
-  origin: "http://localhost:3000",
-  credentials: true
+    origin: process.env.FRONTEND_URL,
+    credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

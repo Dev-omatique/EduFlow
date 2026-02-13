@@ -3,6 +3,7 @@
   import { z } from "zod";
   import DynamicForm from "@/components/auth/DynamicForm";
   import Link from "next/link";
+import { join } from "path";
 
   const loginSchema = z.object({
     email: z.string()
@@ -21,7 +22,10 @@
 
     const handleLogin = async (values: z.infer<typeof loginSchema>) => {
       try {
-        const response = await fetch("http://localhost:3001/api/auth/login", {
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+        const apiUrl = `${baseUrl}/api/auth/login`;
+
+        const response = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(values),
