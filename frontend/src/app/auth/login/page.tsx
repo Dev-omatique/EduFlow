@@ -1,6 +1,6 @@
 "use client";
 
-import { z } from "zod";
+import { includes, z } from "zod";
 import DynamicForm from "@/components/auth/DynamicForm"; // Chemin vers ton composant
 import Link from "next/link";
 
@@ -36,6 +36,7 @@ export default function LoginPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
+        credentials: "include", // <--- OBLIGATOIRE pour recevoir le cookie
       });
 
       const data = await response.json();

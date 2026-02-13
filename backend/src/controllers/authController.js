@@ -110,7 +110,6 @@ export const login = async (req, res, next) => {
     // --- MODIFICATION ICI ---
     res.cookie('access_token', token, {
       httpOnly: true,                // Empêche le JS côté client de lire le cookie
-      secure: process.env.NODE_ENV === 'production', // true en HTTPS uniquement (prod)
       sameSite: 'lax',               // Protection CSRF standard
       maxAge: 3600000,               // 1 heure en millisecondes (doit matcher l'expiresIn du JWT)
       path: '/',                     // Disponible sur tout ton site
