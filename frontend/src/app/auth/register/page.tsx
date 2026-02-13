@@ -7,13 +7,23 @@ import { useRouter } from "next/navigation";
 
 
 const registerSchema = z.object({
-username: z.string().min(3, "Le nom d'utilisateur doit faire au moins 3 caractères"),
-email: z.string().email("Format d'email invalide"),
-password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
-confirmPassword: z.string(),
+  username: z.string().min(3, "Le nom d'utilisateur doit faire au moins 3 caractères"),
+  email: z.string().email("Format d'email invalide"),
+  password: z.string().min(6, "Le mot de passe doit faire au moins 6 caractères"),
+  firstName: z.string().min(2, "Le prénom doit avoir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit avoir au moins 2 caractères"),
+  address: z.string().min(2, "L'adresse doit avoir au moins 2 caractères"),
+  birthDate: z.coerce
+    .date({
+      errorMap: () => ({ message: "Date de naissance invalide" }),
+    })
+    .refine((date) => date < new Date(), {
+      message: "La date de naissance doit être dans le passé",
+    }),
+  confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-message: "Les mots de passe ne correspondent pas",
-path: ["confirmPassword"], 
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 export default function RegisterPage() {
@@ -21,12 +31,12 @@ const router = useRouter();
 
 const registerFields = [
     { 
-        name: "fristname", 
+        name: "firstName", 
         type: "text", 
         placeholder: "prenom" 
     },
     { 
-        name: "lastname", 
+        name: "lastName", 
         type: "text", 
         placeholder: "nom" 
     },
@@ -49,6 +59,16 @@ const registerFields = [
         name: "confirmPassword", 
         type: "password", 
         placeholder: "Confirmer le mot de passe" 
+    },
+    { 
+        name: "address", 
+        type: "text", 
+        placeholder: "Address" 
+    },
+            { 
+        name: "birthDate", 
+        type: "date", 
+        placeholder: "date de naissance" 
     }
 ];
 
@@ -63,8 +83,10 @@ const handleRegister = async (values: z.infer<typeof registerSchema>) => {
             username: values.username,
             email: values.email,
             password: values.password,
-            fristName: values.fristname,
-            lastName: values.lastname,
+            fristName: values.firstName,
+            lastName: values.lastName,
+            address : values.address,
+            birthDate : values.birthDate,
             
             }),
             credentials: "include",
