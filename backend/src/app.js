@@ -26,10 +26,11 @@ const fileContents = fs.readFileSync(openapiPath, "utf8");
 const swaggerConfig = YAML.load(fileContents);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
-
-app.use(cookieParser());
 app.use(logger('dev'));
-app.use(cors())
+app.use(cors({
+  origin: "http://localhost:3000",
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

@@ -9,17 +9,7 @@ const { User } = db;
  */
 export const register = async (req, res, next) => {
   try {
-    const {
-      username,
-      email,
-      password,
-      firstName,
-      lastName,
-      birthDate,
-      address,
-      gradeId,
-      roleId,
-    } = req.body;
+    const { username, email, password, firstName, lastName } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -37,7 +27,6 @@ export const register = async (req, res, next) => {
       return res.status(409).json({ message: "Email déjà utilisé" });
     }
 
-    // 🔐 Hash obligatoire
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -46,10 +35,6 @@ export const register = async (req, res, next) => {
       password: passwordHash,
       firstName: firstName ?? null,
       lastName: lastName ?? null,
-      birthDate: birthDate ?? null,
-      address: address ?? null,
-      gradeId: gradeId ?? null,
-      roleId: roleId ?? null,
     });
 
     const token = jwt.sign(
@@ -58,14 +43,21 @@ export const register = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 3600000,
+      path: '/',
+    });
+
     return res.status(201).json({
-      message: "Utilisateur créé avec succès",
+      message: "Utilisateur créé et connecté avec succès",
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
       },
-      token,
     });
   } catch (err) {
     return next(err);
@@ -73,7 +65,7 @@ export const register = async (req, res, next) => {
 };
 
 /**
- * LOGIN avec Cookie HttpOnly
+ * LOGIN
  */
 export const login = async (req, res, next) => {
   try {
@@ -107,18 +99,17 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    // --- MODIFICATION ICI ---
     res.cookie('access_token', token, {
-      httpOnly: true,                // Empêche le JS côté client de lire le cookie
-      sameSite: 'lax',               // Protection CSRF standard
-      maxAge: 3600000,               // 1 heure en millisecondes (doit matcher l'expiresIn du JWT)
-      path: '/',                     // Disponible sur tout ton site
+      httpOnly: true,
+      sameSite: 'lax',    
+      secure : false,
+      maxAge: 3600000,
+      path: '/',
     });
 
-    // On ne renvoie plus le token dans le JSON pour plus de sécurité
     return res.status(200).json({ 
       message: "Connexion réussie",
-      user: { id: user.id, email: user.email } // Optionnel : renvoie les infos de base
+      user: { id: user.id, email: user.email }
     });
     
   } catch (err) {
