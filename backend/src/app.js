@@ -1,5 +1,6 @@
 import express, { json, urlencoded } from 'express';
 import * as dotenv from 'dotenv'
+dotenv.config()
 import { join } from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
@@ -11,12 +12,10 @@ import errorHandler from './middlewares/errorHandler.js';
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import YAML from 'js-yaml';
-import cookieParser from "cookie-parser";
 
 
 var app = express();
 
-dotenv.config()
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -27,10 +26,11 @@ const fileContents = fs.readFileSync(openapiPath, "utf8");
 const swaggerConfig = YAML.load(fileContents);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
-
-app.use(cookieParser());
 app.use(logger('dev'));
-app.use(cors())
+app.use(cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

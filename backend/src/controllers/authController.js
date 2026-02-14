@@ -9,17 +9,7 @@ const { User } = db;
  */
 export const register = async (req, res, next) => {
   try {
-    const {
-      username,
-      email,
-      password,
-      firstName,
-      lastName,
-      birthDate,
-      address,
-      gradeId,
-      roleId,
-    } = req.body;
+    const { username, email, password, firstName, lastName } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({
@@ -37,7 +27,6 @@ export const register = async (req, res, next) => {
       return res.status(409).json({ message: "Email déjà utilisé" });
     }
 
-    // 🔐 Hash obligatoire
     const passwordHash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -46,10 +35,6 @@ export const register = async (req, res, next) => {
       password: passwordHash,
       firstName: firstName ?? null,
       lastName: lastName ?? null,
-      birthDate: birthDate ?? null,
-      address: address ?? null,
-      gradeId: gradeId ?? null,
-      roleId: roleId ?? null,
     });
 
     const token = jwt.sign(
@@ -58,14 +43,21 @@ export const register = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      maxAge: 3600000,
+      path: '/',
+    });
+
     return res.status(201).json({
-      message: "Utilisateur créé avec succès",
+      message: "Utilisateur créé et connecté avec succès",
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
       },
-      token,
     });
   } catch (err) {
     return next(err);
@@ -93,7 +85,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // 🔐 Uniquement comparaison bcrypt
     const ok = await bcrypt.compare(password, user.password);
 
     if (!ok) {
@@ -108,7 +99,19 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    return res.json({ token });
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      sameSite: 'lax',    
+      secure : false,
+      maxAge: 3600000,
+      path: '/',
+    });
+
+    return res.status(200).json({ 
+      message: "Connexion réussie",
+      user: { id: user.id, email: user.email }
+    });
+    
   } catch (err) {
     return next(err);
   }
