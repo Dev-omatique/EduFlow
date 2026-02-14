@@ -1,13 +1,11 @@
 import jwt from "jsonwebtoken";
 
 export const authRequired = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  const token = req.cookies?.access_token;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!token) {
     return res.status(401).json({ message: "Token manquant" });
   }
-
-  const token = authHeader.slice(7);
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);

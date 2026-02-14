@@ -6,15 +6,14 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import Sequelize from 'sequelize';
 import { env as processEnv } from 'process';
 
-import configFile from '../config/config.js'; // ton config exporte un objet { development, test, production }
+import configFile from '../config/config.js';
 
-// ESM replacement for __filename / __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const base = basename(__filename);
 const env = processEnv.NODE_ENV || 'development';
-const config = configFile[env]; // ✅ pas de conflit de nom
+const config = configFile[env];
 
 const db = {};
 
