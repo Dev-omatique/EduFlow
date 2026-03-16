@@ -23,4 +23,5 @@ test("GET /users avec cookie", async () => {
     .set("Cookie", cookie);
 
   expect(res.statusCode).toBe(200);
+  expect(response.body[0].id).toBe(1);
 });
