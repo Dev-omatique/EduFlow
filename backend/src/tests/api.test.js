@@ -27,7 +27,9 @@ test("GET /users avec cookie", async () => {
   
 });
 
-describe('POST /api/auth/register', function() {
+describe('User Lifecycle: Register & Delete', function() {
+  let userId;
+
   it('should register a user and return a normalized name', function(done) {
     const newUser = {
       username: 'JohnDoe',
@@ -42,13 +44,28 @@ describe('POST /api/auth/register', function() {
       .send(newUser)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
-      .expect(201) // Using 201 Created for registration
+      .expect(201)
       .expect(res => {
-        // Assertions instead of mutations
         if (!res.body.hasOwnProperty('id')) throw new Error("Missing ID");
         if (res.body.username.toLowerCase() !== 'johndoe') {
             throw new Error("Username case-insensitive match failed");
         }
+      })
+      .end(done);
+  });
+
+
+    it('should delete the user we just created', function(done) {
+    if (!userId) {
+      return done(new Error("Impossible de supprimer : ID non défini"));
+    }
+
+    request(app)
+      .delete(`/api/users/${userId}`)
+      .set('Accept', 'application/json')
+      .expect(200)
+      .expect(function(res) {
+        res.body.message.should.equal('successful delete');
       })
       .end(done);
   });
