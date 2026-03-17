@@ -66,21 +66,6 @@ test("POST /register - Devrait échouer si l'email est déjà utilisé", async (
   expect(res.body.message).toMatch(/already exists|email/i);
 });
 
-// test("POST /register - Devrait échouer avec un format d'email invalide", async () => {
-//   const invalidUser = {
-//     username: 'BadEmail',
-//     email: 'not-an-email',
-//     password: 'password123'
-//   };
-
-//   const res = await request(app)
-//     .post('/api/auth/register')
-//     .send(invalidUser)
-//     .set("Cookie", cookie);
-
-//   expect(res.statusCode).toBe(400);
-// });
-
 test("POST /register - Devrait échouer si un champ obligatoire est vide", async () => {
   const incompleteUser = {
     username: 'NoPassword',
