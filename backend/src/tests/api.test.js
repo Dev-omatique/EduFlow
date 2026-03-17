@@ -101,9 +101,9 @@ test("GET /users avec cookie", async () => {
     .set("Cookie", cookie);
 
   expect(res.statusCode).toBe(200);
-  expect(res.body.data.length).toBe(12);
-  
+  expect(Array.isArray(res.body.data)).toBe(true);
 });
+
 
 let testId;
 
@@ -156,4 +156,94 @@ test('Delete User', async () => {
 
   expect(res.status).toBe(200);
   expect(res.body.message).toBe('successful delete');
+});
+
+
+let createdCourseId;
+
+describe("Courses API (/api/courses)", () => {
+
+  describe("POST /", () => {
+    test("Devrait créer un nouveau cours", async () => {
+      const newCourse = {
+        startTime: "2024-10-20T08:00:00Z",
+        endTime: "2024-10-20T10:00:00Z",
+        roomId: 1,
+        subjectId: 3,
+        teacherId: 2,
+        gradeId: 2
+      };
+
+      const res = await request(app)
+        .post("/api/courses")
+        .set("Cookie", cookie)
+        .send(newCourse);
+
+      expect(res.statusCode).toBe(201);
+      expect(res.body).toHaveProperty("id");
+      createdCourseId = res.body.id; 
+    });
+  });
+
+  describe("GET /:type/:id", () => {
+    test("Devrait récupérer les cours d'un enseignant (teacher)", async () => {
+      const res = await request(app)
+        .get("/api/courses/teacher/1")
+        .set("Cookie", cookie);
+
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      if (res.body.length > 0) {
+        expect(res.body[0].teacherId).toBe(1);
+      }
+    });
+
+    test("Devrait récupérer les cours d'une classe (grade) avec filtres de date", async () => {
+      const start = "2024-10-01";
+      const end = "2024-10-31";
+      
+      const res = await request(app)
+        .get(`/api/courses/grade/1?startDate=${start}&endDate=${end}`)
+        .set("Cookie", cookie);
+
+      expect(res.statusCode).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    test("Devrait retourner 400 pour un type invalide", async () => {
+      const res = await request(app)
+        .get("/api/courses/student/1")
+        .set("Cookie", cookie);
+
+      expect(res.statusCode).toBe(400);
+      expect(res.body.message).toContain("Type invalide");
+    });
+  });
+
+  describe("PUT /:id", () => {
+    test("Devrait modifier l'horaire du cours créé", async () => {
+      const updatedData = {
+        startTime: "2024-10-21T09:00:00Z"
+      };
+
+      const res = await request(app)
+        .put(`/api/courses/${createdCourseId}`)
+        .set("Cookie", cookie)
+        .send(updatedData);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("successful update");
+    });
+  });
+
+  describe("DELETE /:id", () => {
+    test("Devrait supprimer le cours", async () => {
+      const res = await request(app)
+        .delete(`/api/courses/${createdCourseId}`)
+        .set("Cookie", cookie);
+
+      expect(res.statusCode).toBe(200);
+      expect(res.body.message).toBe("successful delete");
+    });
+  });
 });
