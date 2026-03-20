@@ -43,7 +43,7 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-
+      console.log("process env", process.env.NEXT_PUBLIC_API_URL);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
         {
@@ -55,7 +55,7 @@ export default function LoginPage() {
           credentials: "include",
         }
       );
-
+      console.log("response", res);
       const data = await res.json();
 
       if (!res.ok) {
@@ -63,9 +63,6 @@ export default function LoginPage() {
       }
 
       console.log("Connecté :", data);
-
-      // 🔥 redirection
-      router.push("/dashboard");
 
     } catch (err: any) {
       setError(err.message);
