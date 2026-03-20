@@ -63,7 +63,7 @@ export default function LoginPage() {
       }
 
       console.log("Connecté :", data);
-
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
