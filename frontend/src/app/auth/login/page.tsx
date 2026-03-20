@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { $ZodAny } from "zod/v4/core";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -43,9 +43,9 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      console.log("process.env.NEXT_PUBLIC_API_URL", process.env.NEXT_PUBLIC_API_URL);
+      console.log("process env", process.env.NEXT_PUBLIC_API_URL);
       const res = await fetch(
-        `https://eduflowent-api.duckdns.org/api/auth/login`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
         {
           method: "POST",
           headers: {
@@ -55,8 +55,7 @@ export default function LoginPage() {
           credentials: "include",
         }
       );
-      console.log("Réponse du serveur :", res);
-
+      console.log("response", res);
       const data = await res.json();
 
       if (!res.ok) {
@@ -64,9 +63,6 @@ export default function LoginPage() {
       }
 
       console.log("Connecté :", data);
-
-      // 🔥 redirection
-      router.push("/dashboard");
 
     } catch (err: any) {
       setError(err.message);
