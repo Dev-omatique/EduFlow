@@ -17,6 +17,7 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_URL=https://eduflowent-api.duckdns.org
 
 # On copie ce qui est nécessaire pour exécuter Next
 COPY --from=build /usr/src/app/package.json ./
