@@ -63,7 +63,7 @@ export default function LoginPage() {
       }
 
       console.log("Connecté :", data);
-
+      router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -118,7 +118,13 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Connexion..." : "Se connecter"}
             </Button>
-
+            {/* LINK TO REGISTER */}
+            <p className="text-sm text-muted-foreground text-center">
+              Vous n'avez pas de compte ?{" "}
+              <Button variant="link" onClick={() => router.push("/auth/register")}>
+                S'inscrire
+              </Button>
+            </p>
           </form>
         </CardContent>
       </Card>
