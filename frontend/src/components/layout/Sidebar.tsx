@@ -28,37 +28,22 @@ const navItems: NavItem[] = [
   { label: "Messagerie", href: "/messages", icon: MessageSquare },
 ];
 
-type SidebarLinkProps = {
-  href: string;
-  icon: React.ElementType;
-  label: string;
-  active: boolean;
-  onClick?: () => void;
-};
-
-function SidebarLink({
-  href,
-  icon: Icon,
-  label,
-  active,
-  onClick,
-}: SidebarLinkProps) {
+function SidebarLink({ href, icon: Icon, label, active }: any) {
   return (
     <Link
       href={href}
-      onClick={onClick}
       className={cn(
         "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
         active
-          ? "bg-white text-sky-600 shadow-sm"
-          : "text-white/95 hover:bg-white/15 hover:text-white"
+          ? "bg-white text-primary shadow-sm"
+          : "text-white hover:bg-white/15"
       )}
     >
       <div
         className={cn(
           "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
           active
-            ? "border-sky-100 bg-sky-50 text-sky-600"
+            ? "border-primary-light bg-primary-light text-primary"
             : "border-white/20 bg-white/10 text-white"
         )}
       >
@@ -69,18 +54,16 @@ function SidebarLink({
   );
 }
 
-type SidebarProps = {
-  onLinkClick?: () => void;
-};
-
-export default function Sidebar({ onLinkClick }: SidebarProps) {
+export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-[250px] flex-col bg-sky-500 text-white">
+    <aside className="fixed left-0 top-0 z-50 flex h-screen w-[250px] flex-col bg-primary text-primary-foreground">
+      
+      {/* HEADER */}
       <div className="border-b border-white/20 px-5 py-6">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/25 backdrop-blur-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
             <GraduationCap className="h-7 w-7 text-white" />
           </div>
           <div>
@@ -90,6 +73,7 @@ export default function Sidebar({ onLinkClick }: SidebarProps) {
         </div>
       </div>
 
+      {/* NAV */}
       <nav className="flex-1 space-y-2 px-4 py-6">
         {navItems.map((item) => (
           <SidebarLink
@@ -98,15 +82,14 @@ export default function Sidebar({ onLinkClick }: SidebarProps) {
             icon={item.icon}
             label={item.label}
             active={pathname === item.href}
-            onClick={onLinkClick}
           />
         ))}
       </nav>
 
+      {/* FOOTER */}
       <div className="px-4 pb-5">
         <Button
-          variant="secondary"
-          className="w-full justify-start gap-3 rounded-2xl border-0 bg-white text-sky-600 hover:bg-sky-50"
+          className="w-full justify-start gap-3 rounded-2xl border-0 bg-white text-primary hover:bg-primary-light"
         >
           <LogOut className="h-5 w-5" />
           Déconnexion
