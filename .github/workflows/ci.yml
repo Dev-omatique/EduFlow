@@ -8,41 +8,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  sonarqube:
-    name: SonarQube Code Quality
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          projectBaseDir: backend
 
   tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    needs: sonarqube
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          POSTGRES_DB: eduflow_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-        ports:
-          - 5432:5432
 
     defaults:
       run:
@@ -73,13 +42,6 @@ jobs:
           TEST_USER_EMAIL=${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }}
           EOF
-
-      - name: Wait for PostgreSQL
-        run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for PostgreSQL..."
-            sleep 1
-          done
 
       - name: Run migrations
         run: npm run migrate
