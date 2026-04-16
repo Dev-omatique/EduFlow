@@ -31,20 +31,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create .env file
-        run: |
-          cat > .env << 'EOF'
-          NODE_ENV=test
-          PORT=3000
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
-          FRONTEND_URL=http://localhost:3000
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          TEST_USER_EMAIL=${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD=${{ secrets.TEST_USER_PASSWORD }}
-          EOF
-
       - name: Run migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NODE_ENV: test
         run: npm run migrate
 
       - name: Run tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FRONTEND_URL: http://localhost:3000
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
+          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          NODE_ENV: test
         run: npm test
