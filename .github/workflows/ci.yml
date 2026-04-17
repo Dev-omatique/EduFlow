@@ -52,11 +52,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: backend/test-results.json
+          path: |
+            backend/test-results.json
+            backend/test-results/
 
-      - name: Jest Report
+      - name: Publish Test Results
         if: always()
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          files: backend/test-results.json
+          files: backend/test-results/junit.xml
           check_name: Jest Test Results
