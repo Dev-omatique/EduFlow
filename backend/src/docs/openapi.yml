@@ -917,6 +917,21 @@ paths:
         '404':
           description: Non trouvé
 
+  /api/users/me:
+    get:
+      tags:
+        - Users
+      summary: Récupérer les informations de l'utilisateur connecté
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Informations de l'utilisateur récupérées
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Non authentifié
 # ---------------------------------------------------------------------------
   # NOTES
   # ---------------------------------------------------------------------------
