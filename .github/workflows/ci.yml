@@ -60,4 +60,4 @@ jobs:
         with:
           name: Jest Test Results
           path: backend/test-results.json
-          reporter: jest-json
+          reporter: jest
