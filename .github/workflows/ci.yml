@@ -54,10 +54,8 @@ jobs:
           name: test-results
           path: backend/test-results.json
 
-      - name: Publish test results
+      - name: Jest Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: marocchino/jest-reporter@v2
         with:
-          name: Jest Test Results
           path: backend/test-results.json
-          reporter: jest
