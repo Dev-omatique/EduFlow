@@ -12,14 +12,13 @@ export default {
   reporters: [
     'default',
     [
-      'jest-junit',
+      'jest-html-reporter',
       {
-        outputDirectory: './test-results',
-        outputName: 'junit.xml',
-        classNameTemplate: '{classname}',
-        titleTemplate: '{title}',
-        ancestorSeparator: ' › ',
-        usePathAsClassName: true,
+        pageTitle: 'Jest Test Report',
+        outputPath: './test-report.html',
+        includeFailureMsg: true,
+        includeConsoleLog: true,
+        statusIgnoreFilter: 'pending',
       },
     ],
   ],

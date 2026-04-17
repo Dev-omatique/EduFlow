@@ -53,4 +53,6 @@ jobs:
         with:
           name: test-results
           retention-days: 30
-          path: backend/coverage/
+          path: |
+            backend/test-report.html
+            backend/coverage/
