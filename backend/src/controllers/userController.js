@@ -135,4 +135,21 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default { getOne, getAll, create, update, delete: remove, getTypeAll };
+const getMe = async (req, res, next) => {
+    try {
+        const user = await User.findOne({
+            where: { id: req.user.userId },
+            attributes: ["id", "username", "email", "firstName", "lastName", "roleId"]
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur introuvable" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export default { getOne, getAll, create, update, delete: remove, getTypeAll, getMe };

@@ -16,6 +16,14 @@ export const register = async (req, res, next) => {
         message: "username, email et password requis",
       });
     }
+    const emailVerification = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailVerification) {
+      return res.status(400).json({ message: "Email invalide" });
+    }
+    const passwordVerification = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+    if (!passwordVerification) {
+      return res.status(400).json({ message: "Password doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial" });
+    }
 
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
@@ -75,6 +83,10 @@ export const login = async (req, res, next) => {
       return res.status(400).json({
         message: "email et password requis",
       });
+    }
+    const emailVerification = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailVerification) {
+      return res.status(400).json({ message: "Email invalide" });
     }
 
     const user = await User.findOne({ where: { email } });
