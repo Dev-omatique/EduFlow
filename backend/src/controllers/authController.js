@@ -16,13 +16,17 @@ export const register = async (req, res, next) => {
         message: "username, email et password requis",
       });
     }
-    const emailVerification = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const emailVerification = email && email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
     if (!emailVerification) {
       return res.status(400).json({ message: "Email invalide" });
     }
-    const passwordVerification = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+
+    const passwordVerification = password.length >= 8 && /[a-z]/.test(password) && /[A-Z]/.test(password) && 
+     /\d/.test(password)
     if (!passwordVerification) {
-      return res.status(400).json({ message: "Password doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial" });
+      return res.status(400).json({
+        message: "Password doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre "
+      });
     }
 
     const existingUsername = await User.findOne({ where: { username } });
@@ -84,7 +88,7 @@ export const login = async (req, res, next) => {
         message: "email et password requis",
       });
     }
-    const emailVerification = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const emailVerification = email && email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
     if (!emailVerification) {
       return res.status(400).json({ message: "Email invalide" });
     }
