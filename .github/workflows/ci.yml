@@ -45,20 +45,12 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           NODE_ENV: test
-        run: npm test -- --json --outputFile=test-results.json --coverage || true
+        run: npm test
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            backend/test-results.json
-            backend/test-results/
-
-      - name: Publish Test Results
-        if: always()
-        uses: EnricoMi/publish-unit-test-result-action@v2
-        with:
-          files: backend/test-results/junit.xml
-          check_name: Jest Test Results
+          retention-days: 30
+          path: backend/coverage/
