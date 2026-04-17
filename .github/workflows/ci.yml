@@ -45,4 +45,19 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           NODE_ENV: test
-        run: npm test
+        run: npm test -- --json --outputFile=test-results.json --coverage || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: backend/test-results.json
+
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Jest Test Results
+          path: backend/test-results.json
+          reporter: jest-json
