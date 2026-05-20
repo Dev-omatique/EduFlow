@@ -38,7 +38,6 @@ type User = {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 async function getCalendarEvents(user: User, startDate: string, endDate: string) {
-  console.log("%c[1] getCalendarEvents() appelé", "color: #3b82f6; font-weight: bold;", { user, startDate, endDate })
   
   try {
     let type = ""
@@ -48,23 +47,17 @@ async function getCalendarEvents(user: User, startDate: string, endDate: string)
     if (user.Role.role === "STUDENT") {
       type = "grade"
       targetId = user.Grade?.id
-      console.log("[2] getCalendarEvents - Étudiant détecté. targetId (Grade.id) =", targetId)
     } else {
       // Ajuste "TEACHER" si ton backend utilise un autre mot-clé pour les profs
       type = "teacher"
       targetId = user.id
-      console.log("[2] getCalendarEvents - Enseignant détecté. targetId (user.id) =", targetId)
     }
 
     if (!targetId) {
-      console.warn("[⚠️ WARNING] getCalendarEvents - Impossible de trouver un targetId valide. Fin de la requête.")
       return []
     }
 
-    console.log(type)
-    console.log(targetId)
     const url = `${API_BASE_URL}/api/courses/${type}/${targetId}?startDate=${startDate}&endDate=${endDate}`
-    console.log("[3] getCalendarEvents - URL finale :", url)
     
     const response = await fetch(url, {
       method: 'GET',
@@ -72,12 +65,9 @@ async function getCalendarEvents(user: User, startDate: string, endDate: string)
       headers: { 'Content-Type': 'application/json' },
     })
 
-    console.log("[4] getCalendarEvents - Statut HTTP :", response.status)
-
     if (!response.ok) throw new Error(`Erreur HTTP : ${response.status}`)
 
     const courses: CourseBackend[] = await response.json()
-    console.log("[5] getCalendarEvents - Data brute reçue :", courses)
 
     const mappedEvents = courses.map(course => ({
       id: String(course.id),
@@ -91,11 +81,9 @@ async function getCalendarEvents(user: User, startDate: string, endDate: string)
       }
     }))
 
-    console.log("[6] getCalendarEvents - Data formatée pour FullCalendar :", mappedEvents)
     return mappedEvents
 
   } catch (error) {
-    console.error("[❌ ERROR] getCalendarEvents - Échec :", error)
     return []
   }
 }
@@ -106,13 +94,10 @@ export default function Calendar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
 
-  console.log("%c[Render] Composant Calendar", "color: #10b981;", { user, loading })
-
   useEffect(() => {
     async function loadUser() {
       try {
         const urlMe = `${API_BASE_URL}/api/users/me`
-        console.log("[useEffect] Chargement utilisateur via :", urlMe)
 
         const response = await fetch(urlMe, {
           method: 'GET',
@@ -122,9 +107,7 @@ export default function Calendar() {
 
         if (response.ok) {
           const resData = await response.json()
-          // Si ton API renvoie directement l'objet utilisateur ou un objet { user: ... }
           const userData = resData.user ? resData.user : resData
-          console.log("[useEffect] Données utilisateur injectées dans le state :", userData)
           setUser(userData)
         } else {
           console.error("[useEffect] Erreur de session, statut :", response.status)
@@ -168,7 +151,6 @@ export default function Calendar() {
         allDaySlot={false}
         
         events={async (fetchInfo, successCallback, failureCallback) => {
-          console.log("%c[FullCalendar] Demande de rafraîchissement des événements", "color: #eab308; font-weight: bold;")
           try {
             const start = fetchInfo.startStr.split('T')[0]
             const end = fetchInfo.endStr.split('T')[0]

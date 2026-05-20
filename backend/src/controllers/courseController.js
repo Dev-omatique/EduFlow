@@ -66,18 +66,16 @@ const getTypeAll = async (req, res, next) => {
             include: [
                 {
                     model: db.User,
-                    as: 'teacher', // <-- Doit correspondre exactement à l'alias du modèle
+                    as: 'teacher',
                     attributes: ['firstName', 'lastName']
                 },
                 {
                     model: db.Room,
                     attributes: ['name']
-                    // foreignKey: 'roomId',
                 },
                 {
                     model: db.Subject,
                     attributes: ['type']
-                    // foreignKey: 'subjectId',
                 },
             ],
         });
