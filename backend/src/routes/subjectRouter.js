@@ -1,16 +1,17 @@
 import { Router } from 'express';
 import subjectController from '../controllers/subjectController.js';
+import { checkPermission } from '../middlewares/checkPermission.js';
 
 var subjectRouter = Router();
 
-subjectRouter.get('/', subjectController.getAll);
+subjectRouter.get('/', checkPermission('MANAGE_SUBJECTS'), subjectController.getAll);
 
-subjectRouter.get('/:id', subjectController.getOne);
+subjectRouter.get('/:id', checkPermission('MANAGE_SUBJECTS'), subjectController.getOne);
 
-subjectRouter.post('/', subjectController.create);
+subjectRouter.post('/', checkPermission('MANAGE_SUBJECTS'), subjectController.create);
 
-subjectRouter.put('/:id', subjectController.update);
+subjectRouter.put('/:id', checkPermission('MANAGE_SUBJECTS'), subjectController.update);
 
-subjectRouter.delete('/:id', subjectController.delete);
+subjectRouter.delete('/:id', checkPermission('MANAGE_SUBJECTS'), subjectController.delete);
 
 export default subjectRouter;

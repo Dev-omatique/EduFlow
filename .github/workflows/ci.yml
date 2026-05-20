@@ -45,4 +45,14 @@ jobs:
           TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
           TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
           NODE_ENV: test
-        run: npm test
+        run: npm test -- --coverage
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          retention-days: 30
+          path: |
+            backend/test-report.html
+            backend/coverage/

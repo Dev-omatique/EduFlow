@@ -22,6 +22,7 @@ export default function LoginPage() {
       setError("Tous les champs sont obligatoires.");
       return;
     }
+
     if (formData.password.length < 6) {
       setError("Mot de passe trop court.");
       return;
@@ -29,7 +30,8 @@ export default function LoginPage() {
 
     try {
       setLoading(true);
-      const res = await fetch(
+
+      const loginResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
         {
           method: "POST",
@@ -38,11 +40,39 @@ export default function LoginPage() {
           credentials: "include",
         }
       );
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Erreur de connexion");
-      router.push("/dashboard");
+
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        throw new Error(loginData.message || "Erreur de connexion");
+      }
+
+      const profileResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/users/me`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const profileData = await profileResponse.json();
+
+      if (!profileResponse.ok) {
+        throw new Error(profileData.message || "Impossible de récupérer le profil");
+      }
+
+      const roleName = profileData.Role?.role?.toLowerCase();
+
+      if (!roleName) {
+        throw new Error("Rôle utilisateur introuvable");
+      }
+
+      router.push(`/${roleName}`);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -68,20 +98,31 @@ export default function LoginPage() {
               <path d="M6 12v5c3 3 9 3 12 0v-5" />
             </svg>
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">EduFlow</h1>
-          <p className="text-sm text-gray-400 font-medium">Espace ENT</p>
+
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            EduFlow
+          </h1>
+
+          <p className="text-sm text-gray-400 font-medium">
+            Espace ENT
+          </p>
         </div>
 
-        <h2 className="text-xl font-bold text-gray-800 mb-1">Bonjour 👋</h2>
-        <p className="text-sm text-gray-500 mb-6">Connectez-vous à votre espace.</p>
+        <h2 className="text-xl font-bold text-gray-800 mb-1">
+          Bonjour 👋
+        </h2>
+
+        <p className="text-sm text-gray-500 mb-6">
+          Connectez-vous à votre espace.
+        </p>
 
         <form onSubmit={handleLogin} className="space-y-4">
-
           {/* Email */}
           <div className="space-y-1.5">
             <label htmlFor="email" className="block text-sm font-bold text-gray-700">
               Email
             </label>
+
             <input
               id="email"
               name="email"
@@ -99,6 +140,7 @@ export default function LoginPage() {
             <label htmlFor="password" className="block text-sm font-bold text-gray-700">
               Mot de passe
             </label>
+
             <input
               id="password"
               name="password"
@@ -126,8 +168,6 @@ export default function LoginPage() {
           >
             {loading ? "Connexion…" : "Se connecter"}
           </button>
-
-      
         </form>
       </div>
     </div>

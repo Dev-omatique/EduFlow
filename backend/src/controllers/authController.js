@@ -17,6 +17,15 @@ export const register = async (req, res, next) => {
       });
     }
 
+    const emailVerification =
+      email &&
+      email.includes("@") &&
+      email.lastIndexOf(".") > email.indexOf("@");
+
+    if (!emailVerification) {
+      return res.status(400).json({ message: "Email invalide" });
+    }
+
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
       return res.status(409).json({ message: "Username déjà utilisé" });
@@ -25,6 +34,19 @@ export const register = async (req, res, next) => {
     const existingEmail = await User.findOne({ where: { email } });
     if (existingEmail) {
       return res.status(409).json({ message: "Email déjà utilisé" });
+    }
+
+    const passwordVerification =
+      password.length >= 8 &&
+      /[a-z]/.test(password) &&
+      /[A-Z]/.test(password) &&
+      /\d/.test(password);
+
+    if (!passwordVerification) {
+      return res.status(400).json({
+        message:
+          "Password doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre",
+      });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -43,12 +65,12 @@ export const register = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    res.cookie('access_token', token, {
+    res.cookie("access_token", token, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: "lax",
       secure: false,
       maxAge: 3600000,
-      path: '/',
+      path: "/",
     });
 
     return res.status(201).json({
@@ -75,6 +97,10 @@ export const login = async (req, res, next) => {
       return res.status(400).json({
         message: "email et password requis",
       });
+    }
+    const emailVerification = email && email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
+    if (!emailVerification) {
+      return res.status(400).json({ message: "Email invalide" });
     }
 
     const user = await User.findOne({ where: { email } });

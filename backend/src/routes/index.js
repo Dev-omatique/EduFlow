@@ -26,6 +26,7 @@ router.use('/auth', authRoutes);
 router.use(authRequired);
 
 // route priver (besoin token)
+router.use('/me', userRouter);
 router.use('/users', userRouter);
 router.use('/attendances', attendanceRouter);
 router.use('/blocknotes', blocknoteRouter);
@@ -39,7 +40,6 @@ router.use('/permissions', permissionRouter);
 router.use('/roles', roleRouter);
 router.use('/rooms', roomRouter);
 router.use('/subjects', subjectRouter);
-router.get("/me", authRequired, (req, res) => {res.json({  ok: true,user: req.user,});});
 
 
 export default router;

@@ -1,6 +1,6 @@
 import db from '../models/index.js';
 
-const { User, Role, Exam } = db;
+const { User, Roles, Exam, Grade} = db;
 
 /**
  * Récupère un User spécifique par son ID
@@ -135,4 +135,31 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default { getOne, getAll, create, update, delete: remove, getTypeAll };
+const getMe = async (req, res, next) => {
+    try {
+        const user = await User.findOne({
+            where: { id: req.user.userId },
+            attributes: ["id", "username", "email", "firstName", "lastName", ],
+            include: [
+            {
+            model: Roles,
+            attributes: ["id", "role"]
+        },
+        {
+            model: Grade,
+            attributes: ["id", "name"]
+        }
+      ]
+        });
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur introuvable" });
+        }
+
+        res.json(user);
+    } catch (error) {
+        next(error);
+    }
+};
+
+export default { getOne, getAll, create, update, delete: remove, getTypeAll, getMe };

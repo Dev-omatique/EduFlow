@@ -7,7 +7,10 @@
 import app  from "../app.js";
 import debug from 'debug'
 import { createServer } from "http";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
 debug("backend:server");
+
 
 /**
  * Get port from environment and store in Express.
@@ -24,6 +27,55 @@ app.set("host", host);
  
 var server = createServer(app);
  
+/**
+ * Create socket io.
+ */
+
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  },
+});
+
+io.use((socket, next) => {
+  try {
+    const parsedCookies = cookie.parse(socket.handshake.headers.cookie);
+    const token = parsedCookies.access_token;
+
+    if (!token) {
+      return next(new Error("Token manquant"));
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    socket.user = decoded;
+
+    next();
+  } catch {
+    next(new Error("Token Socket.IO invalide ou expiré"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log("Utilisateur connecté :", socket.user);
+
+  socket.on("join:user", () => {
+    socket.join(`user:${socket.user.id}`);
+  });
+
+  socket.on("join:class", (classId) => {
+    socket.join(`class:${classId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Utilisateur déconnecté :", socket.id);
+  });
+});
+
+app.set("io", io);
+
+
 /**
  * Listen on provided port, on all network interfaces.
  */
