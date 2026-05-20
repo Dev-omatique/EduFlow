@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,6 +11,8 @@ import {
   MessageSquare,
   LogOut,
   GraduationCap,
+  Menu,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,10 +31,11 @@ const navItems: NavItem[] = [
   { label: "Messagerie", href: "/messages", icon: MessageSquare },
 ];
 
-function SidebarLink({ href, icon: Icon, label, active }: any) {
+function SidebarLink({ href, icon: Icon, label, active, onClick }: any) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       className={cn(
         "group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
         active
@@ -54,12 +58,11 @@ function SidebarLink({ href, icon: Icon, label, active }: any) {
   );
 }
 
-export default function Sidebar() {
+function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-0 top-0 z-50 flex h-screen w-[250px] flex-col bg-primary text-primary-foreground">
-      
+    <aside className="flex h-screen w-[250px] flex-col bg-primary text-primary-foreground">
       {/* HEADER */}
       <div className="border-b border-white/20 px-5 py-6">
         <div className="flex items-center gap-3">
@@ -82,19 +85,64 @@ export default function Sidebar() {
             icon={item.icon}
             label={item.label}
             active={pathname === item.href}
+            onClick={onLinkClick}
           />
         ))}
       </nav>
 
       {/* FOOTER */}
       <div className="px-4 pb-5">
-        <Button
-          className="w-full justify-start gap-3 rounded-2xl border-0 bg-white text-primary hover:bg-primary-light"
-        >
+        <Button className="w-full justify-start gap-3 rounded-2xl border-0 bg-white text-primary hover:bg-primary-light">
           <LogOut className="h-5 w-5" />
           Déconnexion
         </Button>
       </div>
     </aside>
+  );
+}
+
+export default function Sidebar() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      {/* Bouton burger visible seulement sur mobile */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed left-4 top-4 z-50 rounded-xl border bg-white p-2 shadow-md lg:hidden"
+      >
+        <Menu className="h-6 w-6 text-primary" />
+      </button>
+
+      {/* Sidebar desktop toujours ouverte */}
+      <div className="fixed left-0 top-0 z-40 hidden h-screen w-[250px] lg:block">
+        <SidebarContent />
+      </div>
+
+      {/* Overlay mobile */}
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+        />
+      )}
+
+      {/* Sidebar mobile */}
+      <div
+        className={cn(
+          "fixed left-0 top-0 z-50 h-screen w-[250px] transform transition-transform duration-300 lg:hidden",
+          open ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <SidebarContent onLinkClick={() => setOpen(false)} />
+
+        <button
+          onClick={() => setOpen(false)}
+          className="absolute right-3 top-3 rounded-lg bg-white p-1 shadow"
+        >
+          <X className="h-5 w-5 text-primary" />
+        </button>
+      </div>
+    </>
   );
 }
