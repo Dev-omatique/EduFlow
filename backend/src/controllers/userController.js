@@ -139,7 +139,13 @@ const getMe = async (req, res, next) => {
     try {
         const user = await User.findOne({
             where: { id: req.user.userId },
-            attributes: ["id", "username", "email", "firstName", "lastName", "roleId"]
+            attributes: ["id", "username", "email", "firstName", "lastName", "roleId"],
+            include: [
+            {
+            model: Role,
+            attributes: ["id", "role"]
+        }
+      ]
         });
 
         if (!user) {
