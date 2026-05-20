@@ -1,13 +1,14 @@
 'use client'
 
+import "../style/calendar.css";
+
 import { useState, useEffect } from 'react'
-import { EventApi, ViewApi } from '@fullcalendar/core/index.js'
+import { EventApi } from '@fullcalendar/core/index.js'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ShieldAlert } from 'lucide-react'
 
-// ---- Types alignés sur ton vrai JSON ----
-
+// ---- Types ----
 type CourseBackend = {
   id: number
   startTime: string
@@ -23,42 +24,20 @@ type User = {
   email: string
   firstName: string
   lastName: string
-  Role: {
-    id: number
-    role: string // Ex: "STUDENT", "TEACHER"
-  }
-  Grade?: {
-    id: number
-    name: string
-  }
+  Role: { id: number; role: string }
+  Grade?: { id: number; name: string }
 }
-
-// ---- Helpers API ----
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
 async function getCalendarEvents(user: User, startDate: string, endDate: string) {
-  
   try {
-    let type = ""
-    let targetId: number | undefined = undefined
+    let type = user.Role.role === "STUDENT" ? "grade" : "teacher"
+    let targetId = user.Role.role === "STUDENT" ? user.Grade?.id : user.id
 
-    // Correction de la condition avec tes vraies clés API
-    if (user.Role.role === "STUDENT") {
-      type = "grade"
-      targetId = user.Grade?.id
-    } else {
-      // Ajuste "TEACHER" si ton backend utilise un autre mot-clé pour les profs
-      type = "teacher"
-      targetId = user.id
-    }
-
-    if (!targetId) {
-      return []
-    }
+    if (!targetId) return []
 
     const url = `${API_BASE_URL}/api/courses/${type}/${targetId}?startDate=${startDate}&endDate=${endDate}`
-    
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
@@ -69,36 +48,50 @@ async function getCalendarEvents(user: User, startDate: string, endDate: string)
 
     const courses: CourseBackend[] = await response.json()
 
-    const mappedEvents = courses.map(course => ({
+    return courses.map(course => ({
       id: String(course.id),
       title: course.Subject?.type || "Cours", 
       start: course.startTime,
       end: course.endTime,
-      className: "event-class-custom",
       extendedProps: {
         professor: course.teacher ? `${course.teacher.firstName} ${course.teacher.lastName}` : "Non spécifié",
         room: course.Room?.name || "Sans salle"
       }
     }))
-
-    return mappedEvents
-
   } catch (error) {
+    console.error("Erreur lors de la récupération des événements :", error)
     return []
   }
 }
 
-// ---- Composant Principal ----
-
 export default function Calendar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // État pour gérer la vue responsive (Semaine par défaut)
+  const [calendarView, setCalendarView] = useState<'timeGridWeek' | 'timeGridDay'>('timeGridWeek')
+
+  // Détection de la taille de l'écran
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setCalendarView('timeGridDay') // Mode jour sur mobile
+      } else {
+        setCalendarView('timeGridWeek') // Mode semaine sur tablette/ordinateur
+      }
+    }
+
+    // Exécution initiale au montage
+    handleResize()
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     async function loadUser() {
       try {
         const urlMe = `${API_BASE_URL}/api/users/me`
-
         const response = await fetch(urlMe, {
           method: 'GET',
           credentials: 'include',
@@ -107,10 +100,7 @@ export default function Calendar() {
 
         if (response.ok) {
           const resData = await response.json()
-          const userData = resData.user ? resData.user : resData
-          setUser(userData)
-        } else {
-          console.error("[useEffect] Erreur de session, statut :", response.status)
+          setUser(resData.user ? resData.user : resData)
         }
       } catch (error) {
         console.error("[❌ ERROR] loadUser :", error)
@@ -118,43 +108,54 @@ export default function Calendar() {
         setLoading(false)
       }
     }
-
     loadUser()
   }, [])
 
   if (loading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
+      <div className="flex h-[65vh] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground animate-pulse">Chargement de votre emploi du temps...</p>
       </div>
     )
   }
 
   if (!user) {
     return (
-      <div className="rounded-2xl bg-red-50 p-6 text-red-600 border border-red-100">
-        <p className="font-medium">Accès refusé</p>
-        <p className="text-sm">Veuillez vous connecter pour voir votre emploi du temps.</p>
+      <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-destructive/20 bg-destructive/5 text-destructive max-w-md mx-auto my-12">
+        <ShieldAlert className="h-10 w-10 mb-3 opacity-90" />
+        <h3 className="font-semibold text-lg">Accès refusé</h3>
+        <p className="text-sm opacity-80 mt-1">Veuillez vous connecter pour consulter vos cours planifiés.</p>
       </div>
     )
   }
 
   return (
-    <div className="p-4 bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div className="p-3 md:p-5 bg-card rounded-2xl border border-border shadow-sm text-foreground custom-fullcalendar h-[85vh] md:h-[95vh]">
       <FullCalendar
+        key={calendarView} // Crucial : force le re-rendu de FullCalendar quand la vue change
         plugins={[timeGridPlugin]}
-        initialView="timeGridWeek"
+        initialView={calendarView}
         slotMinTime="08:00:00"
         slotMaxTime="19:00:00"
         locale="fr"
+        height="100%"
         weekends={false}
         allDaySlot={false}
-        
+        headerToolbar={{
+          left: 'title',
+          center: '',
+          right: 'prev,next today'
+        }}
+        dayHeaderFormat={
+          calendarView === 'timeGridDay' 
+            ? { weekday: 'long', day: 'numeric', month: 'long' } // Format plus complet si on est tout seul sur l'écran
+            : { weekday: 'short', day: 'numeric' }
+        }
         events={async (fetchInfo, successCallback, failureCallback) => {
           try {
             const start = fetchInfo.startStr.split('T')[0]
             const end = fetchInfo.endStr.split('T')[0]
-            
             const events = await getCalendarEvents(user, start, end)
             successCallback(events)
           } catch (error) {
@@ -167,24 +168,36 @@ export default function Calendar() {
   )
 }
 
-// ---- Custom Render pour les événements ----
+// ---- Rendu Visuel des Événements (Style Shadcn / Tinted Soft) ----
 
-function renderEventContent(eventInfo: {
-  event: EventApi
-  timeText: string
-  view: ViewApi
-}) {
-  const { professor, room } = eventInfo.event.extendedProps as {
-    professor: string
-    room: string
-  }
+function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
+  const { professor, room } = eventInfo.event.extendedProps as { professor: string; room: string }
 
   return (
-    <div className="flex flex-col gap-0.5 px-2 py-1 text-xs leading-tight overflow-hidden h-full text-white bg-primary rounded-lg border-l-4 border-primary-dark">
-      <span className="font-bold truncate">{eventInfo.event.title}</span>
-      {professor && <span className="opacity-90 truncate text-[11px]">{professor}</span>}
-      {room      && <span className="opacity-95 font-medium truncate text-[11px]">{room}</span>}
-      <span className="opacity-70 text-[10px] mt-auto font-mono">{eventInfo.timeText}</span>
+    <div className="flex flex-col gap-0.5 px-2 py-1 md:px-2.5 md:py-1.5 h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary rounded-md border-l-[4px] border-primary shadow-xs overflow-hidden select-none">
+      {/* Titre du cours */}
+      <span className="font-semibold text-[12px] md:text-[13px] tracking-tight leading-snug text-slate-900 dark:text-slate-100 truncate">
+        {eventInfo.event.title}
+      </span>
+      
+      {/* Professeur */}
+      {professor && (
+        <span className="text-[10px] md:text-[11px] font-medium opacity-85 text-slate-700 dark:text-slate-300 truncate">
+          {professor}
+        </span>
+      )}
+      
+      {/* Salle de classe */}
+      {room && (
+        <span className="text-[10px] md:text-[11px] font-semibold opacity-90 text-slate-600 dark:text-slate-400 mt-0.5 truncate">
+          {room}
+        </span>
+      )}
+      
+      {/* Horaire en bas */}
+      <span className="text-[9px] md:text-[10px] font-mono opacity-75 mt-auto pt-1 text-slate-500 dark:text-slate-400">
+        {eventInfo.timeText}
+      </span>
     </div>
   )
 }
