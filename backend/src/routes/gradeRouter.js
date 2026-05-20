@@ -1,18 +1,19 @@
 import { Router } from 'express';
 import gradeController from '../controllers/gradeController.js';
+import { checkPermission } from '../middlewares/checkPermission.js';
 
 var gradeRouter = Router();
 
-gradeRouter.get('/type', gradeController.getTypeAll);
+gradeRouter.get('/type', checkPermission('VIEW_STUDENT_LIST'), gradeController.getTypeAll);
 
 // ---------------------------------------------------- //
 
-gradeRouter.get('/:id', gradeController.getOne);
+gradeRouter.get('/:id', checkPermission('VIEW_STUDENT_LIST'), gradeController.getOne);
 
-gradeRouter.post('/', gradeController.create);
+gradeRouter.post('/', checkPermission('MANAGE_CLASSES'), gradeController.create);
 
-gradeRouter.put('/:id', gradeController.update);
+gradeRouter.put('/:id', checkPermission('MANAGE_CLASSES'), gradeController.update);
 
-gradeRouter.delete('/:id', gradeController.delete);
+gradeRouter.delete('/:id', checkPermission('MANAGE_CLASSES'), gradeController.delete);
 
 export default gradeRouter;

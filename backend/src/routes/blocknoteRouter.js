@@ -1,15 +1,16 @@
 import { Router } from 'express';
 import blocknoteController from '../controllers/blocknoteController.js';
+import { checkPermission } from '../middlewares/checkPermission.js';
 
 var blocknoteRouter = Router();
 
-blocknoteRouter.get('/:id', blocknoteController.getOne);
+blocknoteRouter.get('/:id', checkPermission('VIEW_DOCUMENTS'), blocknoteController.getOne);
 
-blocknoteRouter.post('/', blocknoteController.create);
+blocknoteRouter.post('/', checkPermission('MANAGE_DOCUMENTS'), blocknoteController.create);
 
-blocknoteRouter.put('/:id', blocknoteController.update);
+blocknoteRouter.put('/:id', checkPermission('MANAGE_DOCUMENTS'), blocknoteController.update);
 
-blocknoteRouter.delete('/:id', blocknoteController.delete);
+blocknoteRouter.delete('/:id', checkPermission('MANAGE_DOCUMENTS'), blocknoteController.delete);
 
 // ---------------------------------------------------- //
 
