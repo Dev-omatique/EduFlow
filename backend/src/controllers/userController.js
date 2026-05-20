@@ -1,6 +1,6 @@
 import db from '../models/index.js';
 
-const { User, Role, Exam } = db;
+const { User, Roles, Exam, Grade} = db;
 
 /**
  * Récupère un User spécifique par son ID
@@ -139,7 +139,17 @@ const getMe = async (req, res, next) => {
     try {
         const user = await User.findOne({
             where: { id: req.user.userId },
-            attributes: ["id", "username", "email", "firstName", "lastName", "roleId"]
+            attributes: ["id", "username", "email", "firstName", "lastName", ],
+            include: [
+            {
+            model: Roles,
+            attributes: ["id", "role"]
+        },
+        {
+            model: Grade,
+            attributes: ["id", "name"]
+        }
+      ]
         });
 
         if (!user) {
