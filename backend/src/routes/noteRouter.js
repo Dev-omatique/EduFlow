@@ -1,16 +1,17 @@
 import { Router } from 'express';
 import noteController from '../controllers/noteController.js';
+import { checkPermission } from '../middlewares/checkPermission.js';
 
 var noteRouter = Router();
 
-noteRouter.post('/', noteController.create);
+noteRouter.post('/', checkPermission('CREATE_GRADES'), noteController.create);
 
-noteRouter.put('/:id', noteController.update);
+noteRouter.put('/:id', checkPermission('EDIT_GRADES'), noteController.update);
 
-noteRouter.delete('/:id', noteController.delete);
+noteRouter.delete('/:id', checkPermission('EDIT_GRADES'), noteController.delete);
 
 // ---------------------------------------------------- //
 
-noteRouter.get('/:type/:id', noteController.getTypeAll);
+noteRouter.get('/:type/:id', checkPermission('VIEW_GRADES'), noteController.getTypeAll);
 
 export default noteRouter;

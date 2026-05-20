@@ -1,14 +1,15 @@
 import { Router } from 'express';
 import roleController from '../controllers/roleController.js';
+import { checkPermission } from '../middlewares/checkPermission.js';
 
 var roleRouter = Router();
 
-roleRouter.get('/', roleController.getAll);
+roleRouter.get('/', checkPermission('MANAGE_ROLES'), roleController.getAll);
 
-roleRouter.post('/', roleController.create);
+roleRouter.post('/', checkPermission('MANAGE_ROLES'), roleController.create);
 
-roleRouter.put('/:id', roleController.update);
+roleRouter.put('/:id', checkPermission('MANAGE_ROLES'), roleController.update);
 
-roleRouter.delete('/:id', roleController.delete);
+roleRouter.delete('/:id', checkPermission('MANAGE_ROLES'), roleController.delete);
 
 export default roleRouter;
