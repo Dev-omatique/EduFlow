@@ -1,0 +1,84 @@
+body {
+  overflow: hidden;
+}
+
+
+
+.custom-fullcalendar {
+  --fc-border-color: var(--border) !important;
+  --fc-today-bg-color: var(--surface-muted) !important;
+  font-family: var(--font-sans), sans-serif;
+}
+
+.fc .fc-timegrid-slot, .fc .fc-col-header-cell {
+  height: 2.75rem !important;
+}
+
+.fc .fc-col-header-cell {
+  background-color: transparent;
+  padding: 10px 0 !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem;
+  text-transform: capitalize;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: var(--muted-foreground) !important;
+  text-decoration: none !important;
+}
+
+.fc .fc-button {
+  background-color: var(--card) !important;
+  color: var(--foreground) !important;
+  border: 1px solid var(--border) !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  padding: 0.5rem 0.85rem !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: all 0.2s ease;
+  text-transform: capitalize !important;
+}
+
+.fc .fc-button:hover {
+  background-color: var(--primary-hover) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary-hover) !important;
+  cursor: pointer;
+}
+
+.fc .fc-today-button {
+  background-color: var(--primary) !important;
+  color: var(--primary-foreground) !important;
+  border-color: var(--primary) !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+.fc .fc-today-button:hover {
+  background-color: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+.fc .fc-button:disabled {
+  background-color: var(--input) !important;
+  color: var(--muted-foreground) !important;
+  border-color: var(--border) !important;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fc-timegrid-event-harness .fc-timegrid-event {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.fc .fc-timegrid-now-indicator-line {
+  border-color: var(--primary) !important;
+  border-width: 2px !important;
+}
+.fc .fc-timegrid-now-indicator-arrow {
+  border-left-color: var(--primary) !important;
+}
