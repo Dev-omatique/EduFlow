@@ -2,7 +2,7 @@ import db from "../models/index.js";
 
 const { User, Permission, RolePermission } = db;
 
-export const checkPermission = (permissionName) => {
+export const checkPermission = (permissionCode) => {
   return async (req, res, next) => {
     try {
       if (!req.user?.userId) {
@@ -22,25 +22,35 @@ export const checkPermission = (permissionName) => {
         });
       }
 
+      if (!user.roleId) {
+        return res.status(403).json({
+          message: "Utilisateur sans rôle",
+        });
+      }
+
+      const permission = await Permission.findOne({
+        where: { code: permissionCode },
+        attributes: ["id", "code"],
+      });
+
+      if (!permission) {
+        return res.status(403).json({
+          message: "Permission inconnue",
+          requiredPermission: permissionCode,
+        });
+      }
+
       const rolePermission = await RolePermission.findOne({
         where: {
           roleId: user.roleId,
+          permissionId: permission.id,
         },
-        include: [
-          {
-            model: Permission,
-            where: {
-              name: permissionName,
-            },
-            attributes: ["id", "name"],
-          },
-        ],
       });
 
       if (!rolePermission) {
         return res.status(403).json({
           message: "Accès refusé : permission insuffisante",
-          requiredPermission: permissionName,
+          requiredPermission: permissionCode,
         });
       }
 
