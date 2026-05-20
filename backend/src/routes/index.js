@@ -40,7 +40,6 @@ router.use('/permissions', permissionRouter);
 router.use('/roles', roleRouter);
 router.use('/rooms', roomRouter);
 router.use('/subjects', subjectRouter);
-router.get("/me", userRouter);
 
 
 export default router;

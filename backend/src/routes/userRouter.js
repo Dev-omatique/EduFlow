@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import userController from '../controllers/userController.js';
-
+import { authRequired } from '../middlewares/authMiddleware.js';
 
 const userRouter = Router();
 
 // route spéciale
-userRouter.get('/me', userController.getMe);
+userRouter.get('/me', authRequired, userController.getMe);
 
 // routes générales
 userRouter.get('/', userController.getAll);

@@ -38,8 +38,12 @@ export default function ProfilePage() {
         }
 
         if (!response.ok) {
-          throw new Error("Erreur lors de la récupération du profil");
-        }
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message || `Erreur HTTP ${response.status}`
+        );
+      }
 
         const data = await response.json();
         setUser(data);

@@ -5,6 +5,7 @@ export default (sequelize, DataTypes) => {
   class User extends Model {
     static associate(models) {
       User.belongsTo(models.Roles, { foreignKey: 'roleId' });
+      User.belongsTo(models.Grade, { foreignKey: 'gradeId' });
     }
   }
 
