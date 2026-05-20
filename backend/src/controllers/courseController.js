@@ -40,7 +40,6 @@ const getTypeAll = async (req, res, next) => {
         const { type, id } = req.params;
         const { startDate, endDate } = req.query;
 
-        // 1. Définition de la clé dynamique (teacherId ou gradeId)
         const typeMapping = {
             teacher: 'teacherId',
             grade: 'gradeId'
@@ -48,7 +47,6 @@ const getTypeAll = async (req, res, next) => {
 
         const idKey = typeMapping[type];
 
-        // 2. Validation du type
         if (!idKey) {
             return res.status(400).json({ message: "Type invalide (doit être 'teacher' ou 'grade')" });
         }
@@ -63,7 +61,27 @@ const getTypeAll = async (req, res, next) => {
             if (endDate) where.startTime[Op.lte] = endDate;
         }
 
-        const courses = await Course.findAll({ where });
+        const courses = await Course.findAll({
+            where,
+            include: [
+                {
+                    model: db.User,
+                    as: 'teacher', // <-- Doit correspondre exactement à l'alias du modèle
+                    attributes: ['firstName', 'lastName']
+                },
+                {
+                    model: db.Room,
+                    attributes: ['name']
+                    // foreignKey: 'roomId',
+                },
+                {
+                    model: db.Subject,
+                    attributes: ['type']
+                    // foreignKey: 'subjectId',
+                },
+            ],
+        });
+
         res.json(courses);
 
     } catch (err) {

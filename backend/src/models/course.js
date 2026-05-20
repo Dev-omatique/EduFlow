@@ -10,6 +10,14 @@ export default (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Course.belongsTo(models.Room, { foreignKey: 'roomId' });
+      Course.belongsTo(models.Grade, { foreignKey: 'gradeId' });
+      // models/course.js
+      Course.belongsTo(models.User, { 
+          foreignKey: 'teacherId', 
+          as: 'teacher' // <-- L'alias indispensable ici
+      });
+      Course.belongsTo(models.Subject, { foreignKey: 'subjectId' });
     }
   }
   Course.init({
