@@ -4,6 +4,13 @@ import db from "../models/index.js";
 
 const { User } = db;
 
+const cookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  path: "/",
+};
+
 /**
  * REGISTER
  */
@@ -18,22 +25,32 @@ export const register = async (req, res, next) => {
     }
 
     const emailVerification =
-      email &&
-      email.includes("@") &&
-      email.lastIndexOf(".") > email.indexOf("@");
+      email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
 
     if (!emailVerification) {
-      return res.status(400).json({ message: "Email invalide" });
+      return res.status(400).json({
+        message: "Email invalide",
+      });
     }
 
-    const existingUsername = await User.findOne({ where: { username } });
+    const existingUsername = await User.findOne({
+      where: { username },
+    });
+
     if (existingUsername) {
-      return res.status(409).json({ message: "Username déjà utilisé" });
+      return res.status(409).json({
+        message: "Username déjà utilisé",
+      });
     }
 
-    const existingEmail = await User.findOne({ where: { email } });
+    const existingEmail = await User.findOne({
+      where: { email },
+    });
+
     if (existingEmail) {
-      return res.status(409).json({ message: "Email déjà utilisé" });
+      return res.status(409).json({
+        message: "Email déjà utilisé",
+      });
     }
 
     const passwordVerification =
@@ -66,11 +83,8 @@ export const register = async (req, res, next) => {
     );
 
     res.cookie("access_token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      ...cookieOptions,
       maxAge: 3600000,
-      path: "/",
     });
 
     return res.status(201).json({
@@ -98,12 +112,19 @@ export const login = async (req, res, next) => {
         message: "email et password requis",
       });
     }
-    const emailVerification = email && email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
+
+    const emailVerification =
+      email.includes("@") && email.lastIndexOf(".") > email.indexOf("@");
+
     if (!emailVerification) {
-      return res.status(400).json({ message: "Email invalide" });
+      return res.status(400).json({
+        message: "Email invalide",
+      });
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await User.findOne({
+      where: { email },
+    });
 
     if (!user) {
       return res.status(401).json({
@@ -125,20 +146,30 @@ export const login = async (req, res, next) => {
       { expiresIn: "1h" }
     );
 
-    res.cookie('access_token', token, {
-      httpOnly: true,
-      sameSite: 'lax',    
-      secure : false,
+    res.cookie("access_token", token, {
+      ...cookieOptions,
       maxAge: 3600000,
-      path: '/',
     });
 
-    return res.status(200).json({ 
+    return res.status(200).json({
       message: "Connexion réussie",
-      user: { id: user.id, email: user.email }
+      user: {
+        id: user.id,
+        email: user.email,
+      },
     });
-    
   } catch (err) {
     return next(err);
   }
+};
+
+/**
+ * LOGOUT
+ */
+export const logout = async (req, res) => {
+  res.clearCookie("access_token", cookieOptions);
+
+  return res.status(200).json({
+    message: "Déconnexion réussie",
+  });
 };

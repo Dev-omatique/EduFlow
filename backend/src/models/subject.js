@@ -9,7 +9,7 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      Subject.hasMany(models.Exam, { foreignKey: "subjectId" });
     }
   }
   Subject.init({
