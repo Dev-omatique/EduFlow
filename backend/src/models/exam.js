@@ -9,8 +9,9 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
-      models.Exam.belongsTo(models.Note, { targetKey: "examId" });
+      Exam.hasMany(models.Note, { foreignKey: "examId" });
+      Exam.belongsTo(models.Subject, { foreignKey: "subjectId" });
+    
     }
   }
   Exam.init({
