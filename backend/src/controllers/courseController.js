@@ -74,6 +74,10 @@ const getTypeAll = async (req, res, next) => {
                     attributes: ['name']
                 },
                 {
+                    model: db.Grade,
+                    attributes: ['name']
+                },
+                {
                     model: db.Subject,
                     attributes: ['type']
                 },
