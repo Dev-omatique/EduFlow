@@ -4,7 +4,7 @@ import { checkPermission } from '../middlewares/checkPermission.js';
 
 var gradeRouter = Router();
 
-gradeRouter.get('/type', checkPermission('VIEW_STUDENT_LIST'), gradeController.getTypeAll);
+gradeRouter.get('/',checkPermission('MANAGE_CLASSES'), gradeController.getAll);
 
 // ---------------------------------------------------- //
 

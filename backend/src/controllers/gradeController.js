@@ -56,26 +56,16 @@ const remove = async (req, res, next) => {
 };
 
 /**
- * Récupère toutes les entrées avec un filtrage optionnel par dates
+ * Récupère toutes les classes (Grades) pour le select
  */
-const getTypeAll = async (req, res, next) => {
+const getAll = async (req, res, next) => {
     try {
-        const { startDate, endDate } = req.query;
-        let where = {};
-
-        // Construction dynamique du filtre de dates si elles sont fournies
-        if (startDate || endDate) {
-            where.startTime = {};
-            if (startDate) where.startTime[Op.gte] = startDate;
-            if (endDate) where.startTime[Op.lte] = endDate;
-        }
-
-        const grades = await Grade.findAll({ where });
-        res.json(grades);
+        const grades = await Grade.findAll();
+        res.status(200).json(grades);
     } catch (err) {
         next(err);
     }
 };
 
 
-export default { getOne, create, update, delete: remove, getTypeAll };
+export default { getOne, create, update, delete: remove, getAll };
