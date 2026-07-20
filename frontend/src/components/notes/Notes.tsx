@@ -20,6 +20,8 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL
 const Data = apiUrl + "api/notes"
 
 export default function Notes() {
+
+    
     return (
         <div className="p-4">
             <h1 className="text-2xl font-bold mb-4">Notes</h1>
