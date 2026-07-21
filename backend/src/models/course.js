@@ -24,7 +24,9 @@ export default (sequelize, DataTypes) => {
     roomId: DataTypes.INTEGER,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,
-    gradeId: DataTypes.INTEGER
+    gradeId: DataTypes.INTEGER,
+    recurrent: DataTypes.BOOLEAN,
+    recurrentUntil: DataTypes.DATEONLY
   }, {
     sequelize,
     modelName: 'Course',
