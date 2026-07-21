@@ -2,11 +2,12 @@
 
 import "../style/calendar.css";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { EventApi } from '@fullcalendar/core/index.js'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import { Loader2, ShieldAlert } from 'lucide-react'
+import { Loader2, ShieldAlert, GraduationCap } from 'lucide-react'
+import Sidebar from "@/components/layout/Sidebar";
 
 type CourseBackend = {
   id: number
@@ -16,6 +17,11 @@ type CourseBackend = {
   Room?: { name: string }
   Subject?: { type: string }
   Grade?: { name: string }
+}
+
+type Grade = {
+  id: number
+  name: string
 }
 
 type User = {
@@ -30,14 +36,27 @@ type User = {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
 
-async function getCalendarEvents(user: User, startDate: string, endDate: string) {
+async function getCalendarEvents(
+  user: User, 
+  startDate: string, 
+  endDate: string, 
+  selectedGradeId?: number | null
+) {
   try {
-    const type = user.Role.role === "STUDENT" ? "grade" : "teacher"
-    const targetId = user.Role.role === "STUDENT" ? user.Grade?.id : user.id
+    const isVieScolaire = user.Role.id === 14 || user.Role.role === "VIE_SCOLAIRE"
+    let url = ""
 
-    if (!targetId) return []
+    if (isVieScolaire) {
+      if (!selectedGradeId) return []
+      url = `${API_BASE_URL}/api/courses/grade/${selectedGradeId}?startDate=${startDate}&endDate=${endDate}`
+    } else {
+      const type = user.Role.role === "STUDENT" ? "grade" : "teacher"
+      const targetId = user.Role.role === "STUDENT" ? user.Grade?.id : user.id
 
-    const url = `${API_BASE_URL}/api/courses/${type}/${targetId}?startDate=${startDate}&endDate=${endDate}`
+      if (!targetId) return []
+      url = `${API_BASE_URL}/api/courses/${type}/${targetId}?startDate=${startDate}&endDate=${endDate}`
+    }
+
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
@@ -49,7 +68,7 @@ async function getCalendarEvents(user: User, startDate: string, endDate: string)
     const courses: CourseBackend[] = await response.json()
 
     return courses.map(course => {
-      const participantInfo = user.Role.role === "STUDENT"
+      const participantInfo = (user.Role.role === "STUDENT" || isVieScolaire)
         ? (course.teacher ? `${course.teacher.firstName} ${course.teacher.lastName}` : "Non spécifié")
         : (course.Grade?.name || "Classe non spécifiée");
 
@@ -74,6 +93,11 @@ export default function Calendar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [calendarView, setCalendarView] = useState<'timeGridWeek' | 'timeGridDay'>('timeGridWeek')
+  
+  const [grades, setGrades] = useState<Grade[]>([])
+  const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
+
+  const calendarRef = useRef<FullCalendar>(null)
 
   useEffect(() => {
     const handleResize = () => {
@@ -97,7 +121,24 @@ export default function Calendar() {
 
         if (response.ok) {
           const resData = await response.json()
-          setUser(resData.user ? resData.user : resData)
+          const currentUser: User = resData.user ? resData.user : resData
+          setUser(currentUser)
+
+          if (currentUser.Role.id === 14 || currentUser.Role.role === "VIE_SCOLAIRE") {
+            const resGrades = await fetch(`${API_BASE_URL}/api/grades`, {
+              method: 'GET',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+            })
+
+            if (resGrades.ok) {
+              const gradesData: Grade[] = await resGrades.json()
+              setGrades(gradesData)
+              if (gradesData.length > 0) {
+                setSelectedGradeId(gradesData[0].id)
+              }
+            }
+          }
         }
       } catch (error) {
         console.error("loadUser error:", error)
@@ -107,6 +148,12 @@ export default function Calendar() {
     }
     loadUser()
   }, [])
+
+  useEffect(() => {
+    if (calendarRef.current) {
+      calendarRef.current.getApi().refetchEvents()
+    }
+  }, [selectedGradeId])
 
   if (loading) {
     return (
@@ -127,43 +174,77 @@ export default function Calendar() {
     )
   }
 
+  const isVieScolaire = user.Role.id === 14 || user.Role.role === "VIE_SCOLAIRE"
+
   return (
-    <div className="p-3 md:p-5 bg-card rounded-2xl border border-border shadow-sm text-foreground custom-fullcalendar h-[85vh] md:h-[95vh]">
-      <FullCalendar
-        key={calendarView}
-        plugins={[timeGridPlugin]}
-        initialView={calendarView}
-        slotMinTime="08:00:00"
-        slotMaxTime="19:00:00"
-        locale="fr"
-        height="100%"
-        weekends={false}
-        allDaySlot={false}
-        buttonText={{
-          today: "Aujourd'hui"
-        }}
-        headerToolbar={{
-          left: 'title',
-          center: '',
-          right: 'prev,next today'
-        }}
-        dayHeaderFormat={
-          calendarView === 'timeGridDay' 
-            ? { weekday: 'long', day: 'numeric', month: 'long' } 
-            : { weekday: 'short', day: 'numeric' }
-        }
-        events={async (fetchInfo, successCallback, failureCallback) => {
-          try {
-            const start = fetchInfo.startStr.split('T')[0]
-            const end = fetchInfo.endStr.split('T')[0]
-            const events = await getCalendarEvents(user, start, end)
-            successCallback(events)
-          } catch (error) {
-            failureCallback(error as Error)
-          }
-        }}
-        eventContent={renderEventContent}
-      />
+    <div className="min-h-screen bg-background">
+      <Sidebar />
+
+      <main className="w-full px-4 py-6 pt-20 lg:ml-[250px] lg:w-[calc(100%-250px)] lg:p-6">
+        
+        {isVieScolaire && (
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-card rounded-2xl border border-border shadow-xs">
+            <div className="flex items-center gap-2 text-foreground font-medium">
+              <GraduationCap className="h-5 w-5 text-primary" />
+              <span>Consulter l'emploi du temps d'une classe :</span>
+            </div>
+            <select
+              value={selectedGradeId ?? ''}
+              onChange={(e) => setSelectedGradeId(Number(e.target.value))}
+              className="px-3 py-2 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer max-w-xs"
+            >
+              {grades.length === 0 ? (
+                <option value="" disabled>Aucune classe disponible</option>
+              ) : (
+                grades.map((grade) => (
+                  <option key={grade.id} value={grade.id}>
+                    {grade.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
+        )}
+
+        <div className="p-3 md:p-5 bg-card rounded-2xl border border-border shadow-sm text-foreground custom-fullcalendar h-[85vh] md:h-[95vh]">
+          <FullCalendar
+            ref={calendarRef}
+            key={calendarView}
+            plugins={[timeGridPlugin]}
+            initialView={calendarView}
+            slotMinTime="08:00:00"
+            slotMaxTime="19:00:00"
+            locale="fr"
+            height="100%"
+            weekends={false}
+            allDaySlot={false}
+            buttonText={{
+              today: "Aujourd'hui"
+            }}
+            headerToolbar={{
+              left: 'title',
+              center: '',
+              right: 'prev,next today'
+            }}
+            dayHeaderFormat={
+              calendarView === 'timeGridDay' 
+                ? { weekday: 'long', day: 'numeric', month: 'long' } 
+                : { weekday: 'short', day: 'numeric' }
+            }
+            events={async (fetchInfo, successCallback, failureCallback) => {
+              try {
+                const start = fetchInfo.startStr.split('T')[0]
+                const end = fetchInfo.endStr.split('T')[0]
+                const events = await getCalendarEvents(user, start, end, selectedGradeId)
+                successCallback(events)
+              } catch (error) {
+                failureCallback(error as Error)
+              }
+            }}
+            eventContent={renderEventContent}
+          />
+        </div>
+      </main>
     </div>
   )
 }
