@@ -1,63 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Mail, ShieldCheck, BadgeCheck, Loader2 } from "lucide-react";
-
-interface UserData {
-  id: number;
-  username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  roleId: number;
-  Role: {
-    id: number;
-    role: string;
-  };
-}
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user, isLoading } = useAuth();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-          method: "GET",
-          credentials: "include", 
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (response.status === 401) {
-          throw new Error("Session expirée. Veuillez vous reconnecter.");
-        }
-
-        if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-
-        throw new Error(
-          errorData?.message || `Erreur HTTP ${response.status}`
-        );
-      }
-
-        const data = await response.json();
-        setUser(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Une erreur est survenue");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, []);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-[60vh] items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -65,11 +15,11 @@ export default function ProfilePage() {
     );
   }
 
-  if (error || !user) {
+  if (!user) {
     return (
       <div className="rounded-2xl bg-red-50 p-6 text-red-600 border border-red-100">
         <p className="font-medium">Oups !</p>
-        <p className="text-sm">{error || "Impossible de charger les informations."}</p>
+        <p className="text-sm">Impossible de charger les informations.</p>
       </div>
     );
   }
@@ -99,7 +49,7 @@ export default function ProfilePage() {
                 {user.firstName} {user.lastName}
               </h2>
               <p className="text-sm text-slate-500 font-mono">@{user.username}</p>
-              
+
               <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
                 <BadgeCheck className="h-4 w-4" />
                 {user.Role.role}
@@ -115,11 +65,11 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
+
               <InfoBox icon={Mail} label="Adresse Email" value={user.email} />
               <InfoBox icon={User} label="Nom d'utilisateur" value={user.username} />
               <InfoBox icon={ShieldCheck} label="ID Utilisateur" value={`#${user.id}`} />
-              
+
               <div className="flex items-start gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
                 <div className="mt-1 rounded-lg bg-white p-2 shadow-sm">
                   <div className="h-5 w-5 rounded-full bg-green-500 animate-pulse" />

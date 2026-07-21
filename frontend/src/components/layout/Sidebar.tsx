@@ -41,6 +41,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 type SidebarSubItem = {
   id: number;
@@ -237,6 +238,7 @@ function SidebarGroup({
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const [items, setItems] = useState<SidebarItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -245,10 +247,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     try {
       localStorage.removeItem("eduflow_sidebar_cache");
 
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await logout();
 
       router.push("/auth/login");
       router.refresh();
