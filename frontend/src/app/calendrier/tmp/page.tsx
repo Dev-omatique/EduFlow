@@ -3,25 +3,16 @@
 import "../style/calendar.css";
 
 import { useState, useEffect, useRef } from 'react'
-import { EventApi, EventClickArg } from '@fullcalendar/core/index.js'
+import { EventApi } from '@fullcalendar/core/index.js'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin, { DateClickArg } from '@fullcalendar/interaction'
-import { Loader2, ShieldAlert, GraduationCap, Plus } from 'lucide-react'
+import { Loader2, ShieldAlert, GraduationCap } from 'lucide-react'
 import Sidebar from "@/components/layout/Sidebar";
-import CourseFormModal, { EditableCourse } from "@/components/calendar/CourseFormModal";
-import { Button } from "@/components/ui/button";
 
 type CourseBackend = {
   id: number
   startTime: string
   endTime: string
-  roomId: number | null
-  subjectId: number | null
-  teacherId: number | null
-  gradeId: number | null
-  recurrent: boolean
-  recurrentUntil: string | null
   teacher?: { firstName: string; lastName: string }
   Room?: { name: string }
   Subject?: { type: string }
@@ -88,13 +79,7 @@ async function getCalendarEvents(
         end: course.endTime,
         extendedProps: {
           participant: participantInfo,
-          room: course.Room?.name || "Sans salle",
-          roomId: course.roomId,
-          subjectId: course.subjectId,
-          teacherId: course.teacherId,
-          gradeId: course.gradeId,
-          recurrent: course.recurrent,
-          recurrentUntil: course.recurrentUntil,
+          room: course.Room?.name || "Sans salle"
         }
       }
     })
@@ -111,11 +96,6 @@ export default function Calendar() {
   
   const [grades, setGrades] = useState<Grade[]>([])
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
-
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
-  const [editingCourse, setEditingCourse] = useState<EditableCourse | null>(null)
-  const [defaultStart, setDefaultStart] = useState<Date | null>(null)
 
   const calendarRef = useRef<FullCalendar>(null)
 
@@ -169,12 +149,10 @@ export default function Calendar() {
     loadUser()
   }, [])
 
-  const refetchEvents = () => {
-    calendarRef.current?.getApi().refetchEvents()
-  }
-
   useEffect(() => {
-    refetchEvents()
+    if (calendarRef.current) {
+      calendarRef.current.getApi().refetchEvents()
+    }
   }, [selectedGradeId])
 
   if (loading) {
@@ -198,53 +176,6 @@ export default function Calendar() {
 
   const isVieScolaire = user.Role.id === 14 || user.Role.role === "VIE_SCOLAIRE"
 
-  const handleDateClick = (arg: DateClickArg) => {
-    if (!isVieScolaire) return
-    if (!selectedGradeId) {
-      alert("Sélectionnez d'abord une classe pour créer un cours.")
-      return
-    }
-    setDefaultStart(arg.date)
-    setEditingCourse(null)
-    setModalMode('create')
-    setModalOpen(true)
-  }
-
-  const handleEventClick = (clickInfo: EventClickArg) => {
-    if (!isVieScolaire) return
-    const props = clickInfo.event.extendedProps as {
-      roomId: number | null
-      subjectId: number | null
-      teacherId: number | null
-      recurrent: boolean
-      recurrentUntil: string | null
-    }
-
-    setEditingCourse({
-      id: Number(clickInfo.event.id),
-      startTime: clickInfo.event.startStr,
-      endTime: clickInfo.event.endStr,
-      roomId: props.roomId ?? null,
-      subjectId: props.subjectId ?? null,
-      teacherId: props.teacherId ?? null,
-      recurrent: !!props.recurrent,
-      recurrentUntil: props.recurrentUntil ?? null,
-    })
-    setModalMode('edit')
-    setModalOpen(true)
-  }
-
-  const handleCreateClick = () => {
-    if (!selectedGradeId) {
-      alert("Sélectionnez d'abord une classe pour créer un cours.")
-      return
-    }
-    setDefaultStart(new Date())
-    setEditingCourse(null)
-    setModalMode('create')
-    setModalOpen(true)
-  }
-
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
@@ -257,29 +188,21 @@ export default function Calendar() {
               <GraduationCap className="h-5 w-5 text-primary" />
               <span>Consulter l'emploi du temps d'une classe :</span>
             </div>
-
-            <div className="flex items-center gap-3">
-              <select
-                value={selectedGradeId ?? ''}
-                onChange={(e) => setSelectedGradeId(Number(e.target.value))}
-                className="px-3 py-2 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer max-w-xs"
-              >
-                {grades.length === 0 ? (
-                  <option value="" disabled>Aucune classe disponible</option>
-                ) : (
-                  grades.map((grade) => (
-                    <option key={grade.id} value={grade.id}>
-                      {grade.name}
-                    </option>
-                  ))
-                )}
-              </select>
-
-              <Button type="button" size="sm" onClick={handleCreateClick} className="gap-1.5">
-                <Plus className="h-4 w-4" />
-                Nouveau cours
-              </Button>
-            </div>
+            <select
+              value={selectedGradeId ?? ''}
+              onChange={(e) => setSelectedGradeId(Number(e.target.value))}
+              className="px-3 py-2 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer max-w-xs"
+            >
+              {grades.length === 0 ? (
+                <option value="" disabled>Aucune classe disponible</option>
+              ) : (
+                grades.map((grade) => (
+                  <option key={grade.id} value={grade.id}>
+                    {grade.name}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
         )}
 
@@ -287,7 +210,7 @@ export default function Calendar() {
           <FullCalendar
             ref={calendarRef}
             key={calendarView}
-            plugins={[timeGridPlugin, interactionPlugin]}
+            plugins={[timeGridPlugin]}
             initialView={calendarView}
             slotMinTime="08:00:00"
             slotMaxTime="19:00:00"
@@ -295,8 +218,6 @@ export default function Calendar() {
             height="100%"
             weekends={false}
             allDaySlot={false}
-            dateClick={isVieScolaire ? handleDateClick : undefined}
-            eventClick={isVieScolaire ? handleEventClick : undefined}
             buttonText={{
               today: "Aujourd'hui"
             }}
@@ -324,16 +245,6 @@ export default function Calendar() {
           />
         </div>
       </main>
-
-      <CourseFormModal
-        open={modalOpen}
-        mode={modalMode}
-        gradeId={selectedGradeId}
-        defaultStart={defaultStart}
-        initialCourse={editingCourse}
-        onClose={() => setModalOpen(false)}
-        onSaved={refetchEvents}
-      />
     </div>
   )
 }
