@@ -11,7 +11,7 @@ export default (sequelize, DataTypes) => {
     static associate(models) {
       Exam.hasMany(models.Note, { foreignKey: "examId" });
       Exam.belongsTo(models.Subject, { foreignKey: "subjectId" });
-    
+      Exam.belongsTo(models.Grade, { foreignKey: "gradeId" });
     }
   }
   Exam.init({
