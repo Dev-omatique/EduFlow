@@ -61,7 +61,7 @@ export default function CreateCourseModal({
       try {
         const [resSubjects, resTeachers, resRooms] = await Promise.all([
           fetch(`${API_BASE_URL}/api/subjects`, { credentials: 'include' }),
-          fetch(`${API_BASE_URL}/api/users/teachers`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/api/users/role/4`, { credentials: 'include' }),
           fetch(`${API_BASE_URL}/api/rooms`, { credentials: 'include' }),
         ])
 
@@ -71,8 +71,8 @@ export default function CreateCourseModal({
         }
 
         if (resTeachers.ok) {
-          const data = await resTeachers.json()
-          setTeachers(Array.isArray(data) ? data : data.teachers || data.data || [])
+            const data = await resTeachers.json()
+            setTeachers(data.data ?? [])
         }
 
         if (resRooms.ok) {
