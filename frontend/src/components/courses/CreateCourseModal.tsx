@@ -14,6 +14,9 @@ interface CreateCourseModalProps {
   onSuccess: () => void
   defaultGradeId?: number | null
   grades: Grade[]
+  initialDate?: string
+  initialStartTime?: string
+  initialEndTime?: string
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
@@ -24,6 +27,9 @@ export default function CreateCourseModal({
   onSuccess,
   defaultGradeId,
   grades,
+  initialDate,
+  initialStartTime,
+  initialEndTime
 }: CreateCourseModalProps) {
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
@@ -34,7 +40,6 @@ export default function CreateCourseModal({
   const [teacherId, setTeacherId] = useState<string>('')
   const [roomId, setRoomId] = useState<string>('')
 
-  // 3 états distincts pour le jour et les horaires
   const [courseDate, setCourseDate] = useState<string>('')
   const [startTime, setStartTime] = useState<string>('')
   const [endTime, setEndTime] = useState<string>('')
@@ -47,10 +52,22 @@ export default function CreateCourseModal({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (defaultGradeId) {
-      setGradeId(String(defaultGradeId))
+    if (isOpen) {
+      if (defaultGradeId) setGradeId(String(defaultGradeId))
+      if (initialDate) setCourseDate(initialDate)
+      if (initialStartTime) setStartTime(initialStartTime)
+      if (initialEndTime) setEndTime(initialEndTime)
+    } else {
+      setCourseDate('')
+      setStartTime('')
+      setEndTime('')
+      setSubjectId('')
+      setTeacherId('')
+      setRoomId('')
+      setRecurrent(false)
+      setRecurrentUntil('')
     }
-  }, [defaultGradeId])
+  }, [isOpen, defaultGradeId, initialDate, initialStartTime, initialEndTime])
 
   useEffect(() => {
     if (!isOpen) return
@@ -96,7 +113,6 @@ export default function CreateCourseModal({
     setSubmitting(true)
     setError(null)
 
-    // Vérification que l'heure de fin est bien après l'heure de début
     if (startTime >= endTime) {
       setError("L'heure de fin doit être supérieure à l'heure de début.")
       setSubmitting(false)
@@ -104,7 +120,6 @@ export default function CreateCourseModal({
     }
 
     try {
-      // Reconstitution des objets Date complets à partir de la date + heure
       const startDateTime = new Date(`${courseDate}T${startTime}`)
       const endDateTime = new Date(`${courseDate}T${endTime}`)
 

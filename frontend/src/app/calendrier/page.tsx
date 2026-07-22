@@ -3,9 +3,10 @@
 import "../style/calendar.css"
 
 import { useState, useEffect, useRef } from 'react'
-import { EventApi } from '@fullcalendar/core/index.js'
+import { EventApi, DateSelectArg } from '@fullcalendar/core/index.js'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
 import { Loader2, ShieldAlert, GraduationCap, Plus } from 'lucide-react'
 import Sidebar from "@/components/layout/Sidebar"
 import CreateCourseModal from "@/components/courses/CreateCourseModal"
@@ -97,7 +98,11 @@ export default function Calendar() {
   
   const [grades, setGrades] = useState<Grade[]>([])
   const [selectedGradeId, setSelectedGradeId] = useState<number | null>(null)
+  
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<string>('')
+  const [selectedStartTime, setSelectedStartTime] = useState<string>('')
+  const [selectedEndTime, setSelectedEndTime] = useState<string>('')
 
   const calendarRef = useRef<FullCalendar>(null)
 
@@ -163,6 +168,29 @@ export default function Calendar() {
     }
   }
 
+  const handleDateSelect = (selectInfo: DateSelectArg) => {
+    const startDateStr = selectInfo.startStr.split('T')[0]
+    
+    if (selectInfo.startStr.includes('T')) {
+      const startTimeStr = selectInfo.startStr.split('T')[1].substring(0, 5)
+      const endTimeStr = selectInfo.endStr.split('T')[1].substring(0, 5)
+      
+      setSelectedDate(startDateStr)
+      setSelectedStartTime(startTimeStr)
+      setSelectedEndTime(endTimeStr)
+      setIsModalOpen(true)
+    }
+
+    selectInfo.view.calendar.unselect()
+  }
+
+  const openModalManually = () => {
+    setSelectedDate('')
+    setSelectedStartTime('')
+    setSelectedEndTime('')
+    setIsModalOpen(true)
+  }
+
   if (loading) {
     return (
       <div className="flex h-[65vh] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-border bg-card">
@@ -216,7 +244,7 @@ export default function Calendar() {
 
               <button
                 type="button"
-                onClick={() => setIsModalOpen(true)}
+                onClick={openModalManually}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
               >
                 <Plus className="h-4 w-4" />
@@ -230,7 +258,7 @@ export default function Calendar() {
           <FullCalendar
             ref={calendarRef}
             key={calendarView}
-            plugins={[timeGridPlugin]}
+            plugins={[timeGridPlugin, interactionPlugin]}
             initialView={calendarView}
             slotMinTime="08:00:00"
             slotMaxTime="19:00:00"
@@ -251,6 +279,11 @@ export default function Calendar() {
                 ? { weekday: 'long', day: 'numeric', month: 'long' } 
                 : { weekday: 'short', day: 'numeric' }
             }
+            
+            selectable={isVieScolaire} // Rend cliquable uniquement si Vie Scolaire
+            selectMirror={true}
+            select={handleDateSelect}
+            
             events={async (fetchInfo, successCallback, failureCallback) => {
               try {
                 const start = fetchInfo.startStr.split('T')[0]
@@ -272,6 +305,9 @@ export default function Calendar() {
         onSuccess={handleCourseCreated}
         defaultGradeId={selectedGradeId}
         grades={grades}
+        initialDate={selectedDate}
+        initialStartTime={selectedStartTime}
+        initialEndTime={selectedEndTime}
       />
     </div>
   )
