@@ -141,9 +141,10 @@ const getMe = async (req, res, next) => {
             where: { id: req.user.userId },
             attributes: ["id", "username", "email", "firstName", "lastName", ],
             include: [
-                    {
-                    model: Roles,
-                    attributes: ["id", "role"]
+                {
+                model: Roles,
+                as: "Role",
+                attributes: ["id", "role"]
                 },
                 {
                     model: Grade,

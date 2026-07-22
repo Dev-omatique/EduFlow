@@ -16,6 +16,7 @@ import userRouter from './userRouter.js';
 import authRoutes from "./authRoutes.js";
 import { authRequired } from "../middlewares/authMiddleware.js";
 import sidebarRouter from './sidebarRouter.js';
+import courseStatusRouter from './courseStatusRouter.js';
 
 
 const router = Router();
@@ -42,6 +43,7 @@ router.use('/roles', roleRouter);
 router.use('/rooms', roomRouter);
 router.use('/subjects', subjectRouter);
 router.use('/sidebar', sidebarRouter);
+router.use('/course-statuses', courseStatusRouter);
 
 
 
