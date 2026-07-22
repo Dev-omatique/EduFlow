@@ -82,3 +82,8 @@ body {
 .fc .fc-timegrid-now-indicator-arrow {
   border-left-color: var(--primary) !important;
 }
+
+/* Augmentation de la hauteur des slots pour donner de l'air aux cours d'1h */
+.fc .fc-timegrid-slot {
+  height: 3rem !important; /* 3rem par tranche de 30 min, donc 1h = 6rem (~96px) */
+}

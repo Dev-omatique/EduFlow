@@ -142,6 +142,11 @@ const getTypeAll = async (req, res, next) => {
                     model: db.Subject,
                     attributes: ['type']
                 },
+                {
+                    model: db.CourseStatus,
+                    as: 'status',
+                    attributes: ['id', 'label']
+                }
             ],
         });
 
