@@ -3,22 +3,22 @@
 import { X, Calendar as CalendarIcon, Clock, MapPin, User as UserIcon, AlertCircle } from 'lucide-react'
 
 export type CourseDetails = {
-  title: string
-  start: string
-  end: string
-  participant: string
-  room: string
-  statusLabel?: string | null
-  recurrent?: boolean
-  recurrentUntil?: string
+  readonly title: string
+  readonly start: string
+  readonly end: string
+  readonly participant: string
+  readonly room: string
+  readonly statusLabel?: string | null
+  readonly recurrent?: boolean
+  readonly recurrentUntil?: string
 }
 
-type CourseDetailsModalProps = {
+type CourseDetailsModalProps = Readonly<{
   isOpen: boolean
   onClose: () => void
   course: CourseDetails
   userRole: string
-}
+}>
 
 export default function CourseDetailsModal({ 
   isOpen, 
@@ -56,6 +56,7 @@ export default function CourseDetailsModal({
             <h3 className="font-semibold text-lg">Détails du cours</h3>
           </div>
           <button 
+            type="button"
             onClick={onClose}
             className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
           >

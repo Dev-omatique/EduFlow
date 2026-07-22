@@ -105,7 +105,6 @@ const getTypeAll = async (req, res, next) => {
 
         const idKey = typeMapping[type];
 
-        // Une seule déclaration propre de 'where'
         const where = {};
         if (idKey) {
             where[idKey] = Number(id);
@@ -153,22 +152,23 @@ const getTypeAll = async (req, res, next) => {
             ],
         });
 
+        if (!startDate || !endDate) {
+            return res.json(courses.map(c => c.toJSON()));
+        }
+
         const windowStart = new Date(startDate);
         const windowEnd = new Date(endDate);
         windowEnd.setHours(23, 59, 59, 999); 
 
-        // Séparer les cours non récurrents (ponctuels) des cours récurrents
         const nonRecurrentCourses = courses.filter(c => !c.recurrent);
         const recurrentCourses = courses.filter(c => c.recurrent);
 
         const finalCourses = [];
 
-        // 1. Ajouter d'abord tous les cours non récurrents
         for (const course of nonRecurrentCourses) {
             finalCourses.push(course.toJSON());
         }
 
-        // 2. Traiter les cours récurrents et filtrer les occurrences en conflit
         for (const course of recurrentCourses) {
             const courseJson = course.toJSON();
 
@@ -183,15 +183,12 @@ const getTypeAll = async (req, res, next) => {
             }
 
             while (currentStart <= windowEnd && currentStart <= recurrentUntil) {
-                
-                // Vérifier si cette occurrence chevauche un cours non récurrent existant
                 const hasConflict = nonRecurrentCourses.some(nc => {
                     const ncStart = new Date(nc.startTime);
                     const ncEnd = new Date(nc.endTime);
                     return currentStart < ncEnd && currentEnd > ncStart;
                 });
 
-                // Si aucun conflit, on ajoute l'occurrence récurrente
                 if (!hasConflict) {
                     finalCourses.push({
                         ...courseJson,

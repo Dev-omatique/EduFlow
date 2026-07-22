@@ -126,7 +126,7 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedStartTime, setSelectedStartTime] = useState<string>('')
   const [selectedEndTime, setSelectedEndTime] = useState<string>('')
-  const [selectedCourseToEdit, setSelectedCourseToEdit] = useState<any | null>(null)
+  const [selectedCourseToEdit, setSelectedCourseToEdit] = useState<CourseBackend | null>(null)
 
   // États pour la popup de consultation (Élèves / Professeurs)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
@@ -229,7 +229,7 @@ export default function Calendar() {
         endTime: clickInfo.event.endStr,
         recurrent: props.recurrent,
         recurrentUntil: props.recurrentUntil,
-      })
+      } as CourseBackend)
       setIsModalOpen(true)
     } else {
       setSelectedCourseToView({
@@ -403,10 +403,14 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   const durationMinutes = start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 60
   const isShortEvent = durationMinutes <= 30
 
+  // Correction : Éviter les template literals imbriqués en extrayant la logique
+  const statusSuffix = statusLabel ? ` (${statusLabel})` : ''
+  const tooltipTitle = `${eventInfo.event.title} - ${room}${statusSuffix}`
+
   if (isShortEvent) {
     return (
       <div 
-        title={`${eventInfo.event.title} - ${room} ${statusLabel ? `(${statusLabel})` : ''}`}
+        title={tooltipTitle}
         className="flex items-center justify-between h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary px-1.5 rounded-md border-l-[3px] border-primary shadow-2xs overflow-hidden text-[11px] select-none cursor-pointer gap-1"
       >
         <div className="flex items-center gap-1 truncate">
