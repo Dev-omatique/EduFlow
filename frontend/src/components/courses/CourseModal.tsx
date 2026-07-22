@@ -1,7 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, Calendar, Clock, MapPin, User, BookOpen, GraduationCap, Repeat, Trash2, Tag } from 'lucide-react'
+import { Loader2, Calendar, Clock, MapPin, User, BookOpen, GraduationCap, Repeat, Trash2, Tag } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
 
 type Grade = { id: number; name: string }
 type Subject = { id: number; type: string }
@@ -167,8 +185,6 @@ export default function CourseModal({
     fetchOptions()
   }, [isOpen])
 
-  if (!isOpen) return null
-
   const getPayload = (startIso: string, endIso: string) => ({
     gradeId: Number(gradeId),
     subjectId: Number(subjectId),
@@ -278,23 +294,16 @@ export default function CourseModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground shadow-xl">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg bg-card border border-border text-foreground rounded-2xl overflow-hidden flex flex-col p-0 max-h-[90vh]">
         
         {/* En-tête */}
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
+        <DialogHeader className="flex flex-row items-center justify-between border-b border-border px-6 py-4 space-y-0 bg-background/50">
           <div className="flex items-center gap-2 font-semibold text-lg">
             <Calendar className="h-5 w-5 text-primary" />
-            <span>{isEditing ? "Modifier le cours" : "Planifier un nouveau cours"}</span>
+            <DialogTitle>{isEditing ? "Modifier le cours" : "Planifier un nouveau cours"}</DialogTitle>
           </div>
-          <button
-            onClick={onClose}
-            type="button"
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        </DialogHeader>
 
         {/* Formulaire global */}
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
@@ -348,142 +357,134 @@ export default function CourseModal({
             ) : (
               <>
                 {/* Classe */}
-                <div>
-                  <label htmlFor="grade-select" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                <div className="space-y-1.5">
+                  <Label htmlFor="grade-select" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                     <GraduationCap className="h-4 w-4" /> Classe
-                  </label>
-                  <select
-                    id="grade-select"
-                    required
-                    value={gradeId}
-                    onChange={(e) => setGradeId(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="" disabled>Sélectionner une classe</option>
-                    {grades.map((g) => (
-                      <option key={g.id} value={g.id}>{g.name}</option>
-                    ))}
-                  </select>
+                  </Label>
+                  <Select value={gradeId} onValueChange={setGradeId}>
+                    <SelectTrigger id="grade-select" className="w-full bg-background border-border rounded-xl">
+                      <SelectValue placeholder="Sélectionner une classe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((g) => (
+                        <SelectItem key={g.id} value={String(g.id)}>{g.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Matière & Enseignant */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label htmlFor="subject-select" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="subject-select" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                       <BookOpen className="h-4 w-4" /> Matière
-                    </label>
-                    <select
-                      id="subject-select"
-                      required
-                      value={subjectId}
-                      onChange={(e) => setSubjectId(e.target.value)}
-                      className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="" disabled>Sélectionner</option>
-                      {subjects.map((s) => (
-                        <option key={s.id} value={s.id}>{s.type}</option>
-                      ))}
-                    </select>
+                    </Label>
+                    <Select value={subjectId} onValueChange={setSubjectId}>
+                      <SelectTrigger id="subject-select" className="w-full bg-background border-border rounded-xl">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.map((s) => (
+                          <SelectItem key={s.id} value={String(s.id)}>{s.type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div>
-                    <label htmlFor="teacher-select" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="teacher-select" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                       <User className="h-4 w-4" /> Enseignant
-                    </label>
-                    <select
-                      id="teacher-select"
-                      required
-                      value={teacherId}
-                      onChange={(e) => setTeacherId(e.target.value)}
-                      className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="" disabled>Sélectionner</option>
-                      {teachers.map((t) => (
-                        <option key={t.id} value={t.id}>{t.firstName} {t.lastName}</option>
-                      ))}
-                    </select>
+                    </Label>
+                    <Select value={teacherId} onValueChange={setTeacherId}>
+                      <SelectTrigger id="teacher-select" className="w-full bg-background border-border rounded-xl">
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teachers.map((t) => (
+                          <SelectItem key={t.id} value={String(t.id)}>{t.firstName} {t.lastName}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
 
                 {/* Salle */}
-                <div>
-                  <label htmlFor="room-select" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                <div className="space-y-1.5">
+                  <Label htmlFor="room-select" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                     <MapPin className="h-4 w-4" /> Salle
-                  </label>
-                  <select
-                    id="room-select"
-                    required
-                    value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="" disabled>Sélectionner une salle</option>
-                    {Array.isArray(rooms) && rooms.map((r) => (
-                      <option key={r.id} value={r.id}>{r.name}</option>
-                    ))}
-                  </select>
+                  </Label>
+                  <Select value={roomId} onValueChange={setRoomId}>
+                    <SelectTrigger id="room-select" className="w-full bg-background border-border rounded-xl">
+                      <SelectValue placeholder="Sélectionner une salle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.isArray(rooms) && rooms.map((r) => (
+                        <SelectItem key={r.id} value={String(r.id)}>{r.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Statut du cours (Optionnel) */}
-                <div>
-                  <label htmlFor="status-select" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                <div className="space-y-1.5">
+                  <Label htmlFor="status-select" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                     <Tag className="h-4 w-4" /> Statut du cours (Optionnel)
-                  </label>
-                  <select
-                    id="status-select"
-                    value={statusId}
-                    onChange={(e) => setStatusId(e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="">Aucun statut particulier</option>
-                    {Array.isArray(courseStatuses) && courseStatuses.map((st) => (
-                      <option key={st.id} value={st.id}>{st.label}</option>
-                    ))}
-                  </select>
+                  </Label>
+                  <Select value={statusId || "none"} onValueChange={(val) => setStatusId(val === "none" ? "" : val)}>
+                    <SelectTrigger id="status-select" className="w-full bg-background border-border rounded-xl">
+                      <SelectValue placeholder="Aucun statut particulier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucun statut particulier</SelectItem>
+                      {Array.isArray(courseStatuses) && courseStatuses.map((st) => (
+                        <SelectItem key={st.id} value={String(st.id)}>{st.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Date & Horaires */}
                 <div className="space-y-3 pt-1">
-                  <div>
-                    <label htmlFor="course-date" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="course-date" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                       <Calendar className="h-4 w-4" /> Jour du cours
-                    </label>
-                    <input
+                    </Label>
+                    <Input
                       id="course-date"
                       type="date"
                       required
                       value={courseDate}
                       onChange={(e) => setCourseDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="w-full bg-background border-border rounded-xl"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label htmlFor="start-time" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="start-time" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                         <Clock className="h-4 w-4" /> Heure de début
-                      </label>
-                      <input
+                      </Label>
+                      <Input
                         id="start-time"
                         type="time"
                         required
                         value={startTime}
                         onChange={(e) => setStartTime(e.target.value)}
-                        className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full bg-background border-border rounded-xl"
                       />
                     </div>
 
-                    <div>
-                      <label htmlFor="end-time" className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="end-time" className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                         <Clock className="h-4 w-4" /> Heure de fin
-                      </label>
-                      <input
+                      </Label>
+                      <Input
                         id="end-time"
                         type="time"
                         required
                         value={endTime}
                         onChange={(e) => setEndTime(e.target.value)}
-                        className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full bg-background border-border rounded-xl"
                       />
                     </div>
                   </div>
@@ -492,29 +493,30 @@ export default function CourseModal({
                 {/* Récurrence */}
                 {(!isEditing || editScope === 'all') && (
                   <div className="pt-2 border-t border-border space-y-3">
-                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
-                      <input
-                        type="checkbox"
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="recurrent-checkbox"
                         checked={recurrent}
-                        onChange={(e) => setRecurrent(e.target.checked)}
-                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        onCheckedChange={(checked) => setRecurrent(checked === true)}
                       />
-                      <Repeat className="h-4 w-4 text-primary" />
-                      <span>Répéter toutes les semaines</span>
-                    </label>
+                      <Label htmlFor="recurrent-checkbox" className="flex items-center gap-2 cursor-pointer text-sm font-medium">
+                        <Repeat className="h-4 w-4 text-primary" />
+                        <span>Répéter toutes les semaines</span>
+                      </Label>
+                    </div>
 
                     {recurrent && (
-                      <div>
-                        <label htmlFor="recurrent-until" className="text-xs font-semibold mb-1 block text-muted-foreground">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="recurrent-until" className="text-xs font-semibold block text-muted-foreground">
                           Jusqu'au (Date de fin de récurrence)
-                        </label>
-                        <input
+                        </Label>
+                        <Input
                           id="recurrent-until"
                           type="date"
                           required={recurrent}
                           value={recurrentUntil}
                           onChange={(e) => setRecurrentUntil(e.target.value)}
-                          className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="w-full bg-background border-border rounded-xl"
                         />
                       </div>
                     )}
@@ -525,29 +527,31 @@ export default function CourseModal({
           </div>
 
           {/* Pied de page (Footer) */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-4 bg-card">
+          <DialogFooter className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-4 bg-background/50 sm:justify-between">
             
             {/* Suppression */}
             {isEditing ? (
               <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1.5 text-xs font-medium cursor-pointer text-muted-foreground select-none">
-                  <input
-                    type="checkbox"
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="confirm-delete"
                     checked={confirmDelete}
-                    onChange={(e) => setConfirmDelete(e.target.checked)}
-                    className="h-4 w-4 rounded border-border text-destructive focus:ring-destructive cursor-pointer"
+                    onCheckedChange={(checked) => setConfirmDelete(checked === true)}
                   />
-                  <span>Confirmer</span>
-                </label>
-                <button
+                  <Label htmlFor="confirm-delete" className="text-xs font-medium cursor-pointer text-muted-foreground select-none">
+                    Confirmer
+                  </Label>
+                </div>
+                <Button
                   type="button"
+                  variant="destructive"
                   onClick={handleDelete}
                   disabled={!confirmDelete || deleting || submitting}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50 cursor-pointer"
+                  className="flex items-center gap-1.5 rounded-xl text-sm font-medium cursor-pointer"
                 >
                   {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   <span>Supprimer</span>
-                </button>
+                </Button>
               </div>
             ) : (
               <div />
@@ -555,26 +559,27 @@ export default function CourseModal({
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={onClose}
-                className="px-4 py-2 border border-border rounded-xl text-sm font-medium hover:bg-accent transition-colors cursor-pointer"
+                className="rounded-xl text-sm font-medium cursor-pointer"
               >
                 Annuler
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
                 disabled={submitting || loadingOptions || deleting}
-                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
+                className="flex items-center gap-2 rounded-xl text-sm font-medium cursor-pointer"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {getSubmitButtonText()}
-              </button>
+              </Button>
             </div>
 
-          </div>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
