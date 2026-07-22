@@ -11,8 +11,6 @@ export default (sequelize, DataTypes) => {
       
       // Lien vers la table des statuts
       Course.belongsTo(models.CourseStatus, { foreignKey: 'statusId', as: 'status' });
-      // Exceptions ponctuelles
-      Course.hasMany(models.CourseException, { foreignKey: 'courseId', as: 'exceptions' });
     }
   }
 
