@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, Loader2, Calendar, Clock, MapPin, User, BookOpen, GraduationCap, Repeat, Trash2 } from 'lucide-react'
+import { X, Loader2, Calendar, Clock, MapPin, User, BookOpen, GraduationCap, Repeat, Trash2, Tag } from 'lucide-react'
 
 type Grade = { id: number; name: string }
 type Subject = { id: number; type: string }
 type Teacher = { id: number; firstName: string; lastName: string }
 type Room = { id: number; name: string }
+type CourseStatus = { id: number; label: string }
 
 interface CourseToEdit {
   id: number | string
@@ -14,6 +15,7 @@ interface CourseToEdit {
   subjectId: number
   teacherId: number
   roomId: number
+  statusId?: number | null
   startTime: string
   endTime: string
   recurrent?: boolean
@@ -48,11 +50,13 @@ export default function CourseModal({
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
+  const [courseStatuses, setCourseStatuses] = useState<CourseStatus[]>([])
 
   const [gradeId, setGradeId] = useState<string>('')
   const [subjectId, setSubjectId] = useState<string>('')
   const [teacherId, setTeacherId] = useState<string>('')
   const [roomId, setRoomId] = useState<string>('')
+  const [statusId, setStatusId] = useState<string>('')
 
   const [courseDate, setCourseDate] = useState<string>('')
   const [startTime, setStartTime] = useState<string>('')
@@ -79,6 +83,7 @@ export default function CourseModal({
         setSubjectId(String(courseToEdit.subjectId || ''))
         setTeacherId(String(courseToEdit.teacherId || ''))
         setRoomId(String(courseToEdit.roomId || ''))
+        setStatusId(courseToEdit.statusId ? String(courseToEdit.statusId) : '')
 
         if (courseToEdit.startTime) {
           const startDate = new Date(courseToEdit.startTime)
@@ -96,6 +101,7 @@ export default function CourseModal({
         if (initialDate) setCourseDate(initialDate)
         if (initialStartTime) setStartTime(initialStartTime)
         if (initialEndTime) setEndTime(initialEndTime)
+        setStatusId('')
       }
     } else {
       setCourseDate('')
@@ -104,6 +110,7 @@ export default function CourseModal({
       setSubjectId('')
       setTeacherId('')
       setRoomId('')
+      setStatusId('')
       setRecurrent(false)
       setRecurrentUntil('')
       setConfirmDelete(false)
@@ -117,10 +124,11 @@ export default function CourseModal({
       setLoadingOptions(true)
       setError(null)
       try {
-        const [resSubjects, resTeachers, resRooms] = await Promise.all([
+        const [resSubjects, resTeachers, resRooms, resStatuses] = await Promise.all([
           fetch(`${API_BASE_URL}/api/subjects`, { credentials: 'include' }),
           fetch(`${API_BASE_URL}/api/users/role/4`, { credentials: 'include' }),
           fetch(`${API_BASE_URL}/api/rooms`, { credentials: 'include' }),
+          fetch(`${API_BASE_URL}/api/course-statuses`, { credentials: 'include' }),
         ])
 
         if (resSubjects.ok) {
@@ -136,6 +144,11 @@ export default function CourseModal({
         if (resRooms.ok) {
           const data = await resRooms.json()
           setRooms(Array.isArray(data) ? data : data.rooms || data.data || [])
+        }
+
+        if (resStatuses.ok) {
+          const data = await resStatuses.json()
+          setCourseStatuses(Array.isArray(data) ? data : data.statuses || data.data || [])
         }
       } catch (err) {
         console.error("Erreur lors de la récupération des options:", err)
@@ -169,6 +182,7 @@ export default function CourseModal({
         subjectId: Number(subjectId),
         teacherId: Number(teacherId),
         roomId: Number(roomId),
+        statusId: statusId ? Number(statusId) : null,
         startTime: startDateTime.toISOString(),
         endTime: endDateTime.toISOString(),
         recurrent,
@@ -333,6 +347,23 @@ export default function CourseModal({
                     <option value="" disabled>Sélectionner une salle</option>
                     {Array.isArray(rooms) && rooms.map((r) => (
                       <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Statut du cours (Optionnel) */}
+                <div>
+                  <label className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
+                    <Tag className="h-4 w-4" /> Statut du cours (Optionnel)
+                  </label>
+                  <select
+                    value={statusId}
+                    onChange={(e) => setStatusId(e.target.value)}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="">Aucun statut particulier</option>
+                    {Array.isArray(courseStatuses) && courseStatuses.map((st) => (
+                      <option key={st.id} value={st.id}>{st.label}</option>
                     ))}
                   </select>
                 </div>
