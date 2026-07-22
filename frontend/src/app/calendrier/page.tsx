@@ -3,18 +3,24 @@
 import "../style/calendar.css"
 
 import { useState, useEffect, useRef } from 'react'
-import { EventApi, DateSelectArg } from '@fullcalendar/core/index.js'
+import { EventApi, DateSelectArg, EventClickArg } from '@fullcalendar/core/index.js'
 import FullCalendar from '@fullcalendar/react'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import { Loader2, ShieldAlert, GraduationCap, Plus } from 'lucide-react'
 import Sidebar from "@/components/layout/Sidebar"
-import CreateCourseModal from "@/components/courses/CreateCourseModal"
+import CreateCourseModal from "@/components/courses/CourseModal"
 
 type CourseBackend = {
-  id: number
+  id: number | string
   startTime: string
   endTime: string
+  gradeId: number
+  subjectId: number
+  teacherId: number
+  roomId: number
+  recurrent?: boolean
+  recurrentUntil?: string
   teacher?: { firstName: string; lastName: string }
   Room?: { name: string }
   Subject?: { type: string }
@@ -74,14 +80,24 @@ async function getCalendarEvents(
         ? (course.teacher ? `${course.teacher.firstName} ${course.teacher.lastName}` : "Non spécifié")
         : (course.Grade?.name || "Classe non spécifiée");
 
+      const rawId = String(course.id);
+      const baseId = rawId.includes('_') ? rawId.split('_')[0] : rawId;
+
       return {
-        id: String(course.id),
+        id: rawId,
         title: course.Subject?.type || "Cours", 
         start: course.startTime,
         end: course.endTime,
         extendedProps: {
           participant: participantInfo,
-          room: course.Room?.name || "Sans salle"
+          room: course.Room?.name || "Sans salle",
+          courseId: baseId,
+          gradeId: course.gradeId,
+          subjectId: course.subjectId,
+          teacherId: course.teacherId,
+          roomId: course.roomId,
+          recurrent: course.recurrent,
+          recurrentUntil: course.recurrentUntil,
         }
       }
     })
@@ -103,6 +119,7 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedStartTime, setSelectedStartTime] = useState<string>('')
   const [selectedEndTime, setSelectedEndTime] = useState<string>('')
+  const [selectedCourseToEdit, setSelectedCourseToEdit] = useState<any | null>(null)
 
   const calendarRef = useRef<FullCalendar>(null)
 
@@ -162,7 +179,7 @@ export default function Calendar() {
     }
   }, [selectedGradeId])
 
-  const handleCourseCreated = () => {
+  const handleCourseSaved = () => {
     if (calendarRef.current) {
       calendarRef.current.getApi().refetchEvents()
     }
@@ -175,6 +192,7 @@ export default function Calendar() {
       const startTimeStr = selectInfo.startStr.split('T')[1].substring(0, 5)
       const endTimeStr = selectInfo.endStr.split('T')[1].substring(0, 5)
       
+      setSelectedCourseToEdit(null) // Mode création
       setSelectedDate(startDateStr)
       setSelectedStartTime(startTimeStr)
       setSelectedEndTime(endTimeStr)
@@ -184,7 +202,27 @@ export default function Calendar() {
     selectInfo.view.calendar.unselect()
   }
 
+  const handleEventClick = (clickInfo: EventClickArg) => {
+    const isVieScolaire = user?.Role.id === 14 || user?.Role.role === "VIE_SCOLAIRE"
+    if (!isVieScolaire) return // Seule la vie scolaire peut modifier les cours par défaut
+
+    const props = clickInfo.event.extendedProps
+    setSelectedCourseToEdit({
+      id: props.courseId,
+      gradeId: props.gradeId,
+      subjectId: props.subjectId,
+      teacherId: props.teacherId,
+      roomId: props.roomId,
+      startTime: clickInfo.event.startStr,
+      endTime: clickInfo.event.endStr,
+      recurrent: props.recurrent,
+      recurrentUntil: props.recurrentUntil,
+    })
+    setIsModalOpen(true)
+  }
+
   const openModalManually = () => {
+    setSelectedCourseToEdit(null) // Mode création
     setSelectedDate('')
     setSelectedStartTime('')
     setSelectedEndTime('')
@@ -280,9 +318,10 @@ export default function Calendar() {
                 : { weekday: 'short', day: 'numeric' }
             }
             
-            selectable={isVieScolaire} // Rend cliquable uniquement si Vie Scolaire
+            selectable={isVieScolaire}
             selectMirror={true}
             select={handleDateSelect}
+            eventClick={handleEventClick} // Permet de déclencher l'ouverture de la popup en update
             
             events={async (fetchInfo, successCallback, failureCallback) => {
               try {
@@ -302,12 +341,13 @@ export default function Calendar() {
       <CreateCourseModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={handleCourseCreated}
+        onSuccess={handleCourseSaved}
         defaultGradeId={selectedGradeId}
         grades={grades}
         initialDate={selectedDate}
         initialStartTime={selectedStartTime}
         initialEndTime={selectedEndTime}
+        courseToEdit={selectedCourseToEdit}
       />
     </div>
   )
@@ -317,7 +357,7 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   const { participant, room } = eventInfo.event.extendedProps as { participant: string; room: string }
 
   return (
-    <div className="flex flex-col gap-0.5 px-2 py-1 md:px-2.5 md:py-1.5 h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary rounded-md border-l-[4px] border-primary shadow-xs overflow-hidden select-none">
+    <div className="flex flex-col gap-0.5 px-2 py-1 md:px-2.5 md:py-1.5 h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary rounded-md border-l-[4px] border-primary shadow-xs overflow-hidden select-none cursor-pointer">
       <span className="font-semibold text-[12px] md:text-[13px] tracking-tight leading-snug text-slate-900 dark:text-slate-100 truncate">
         {eventInfo.event.title}
       </span>
