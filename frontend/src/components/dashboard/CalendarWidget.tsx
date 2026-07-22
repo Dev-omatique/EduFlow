@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, AlertCircle, CalendarDays, Clock, MapPin, User as UserIcon } from "lucide-react";
+import { Loader2, AlertCircle, CalendarDays, Clock, MapPin, User as UserIcon, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 // Composants shadcn/ui
@@ -77,6 +77,8 @@ export default function CalendarWidget() {
   const [courses, setCourses] = useState<CourseBackend[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const isTeacher = user?.Role?.role?.toUpperCase() === "TEACHER";
 
   useEffect(() => {
     if (isLoading) return;
@@ -157,11 +159,24 @@ export default function CalendarWidget() {
                   <p className="text-sm font-bold text-foreground">
                     {course.Subject?.type || "Cours"}
                   </p>
+                  
+                  {/* Affichage conditionnel : Classe si Prof, Prof si Élève */}
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-                    <UserIcon className="h-3.5 w-3.5 shrink-0" />
-                    {course.teacher
-                      ? `${course.teacher.firstName} ${course.teacher.lastName}`
-                      : course.Grade?.name || "Information indisponible"}
+                    {isTeacher ? (
+                      <>
+                        <Users className="h-3.5 w-3.5 shrink-0 text-primary" />
+                        <span>{course.Grade?.name || "Classe non spécifiée"}</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserIcon className="h-3.5 w-3.5 shrink-0" />
+                        <span>
+                          {course.teacher
+                            ? `${course.teacher.firstName} ${course.teacher.lastName}`
+                            : "Professeur non renseigné"}
+                        </span>
+                      </>
+                    )}
                   </p>
                 </div>
 
