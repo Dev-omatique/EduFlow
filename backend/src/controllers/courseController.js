@@ -150,19 +150,24 @@ const getTypeAll = async (req, res, next) => {
             ],
         });
 
-        const finalCourses = [];
         const windowStart = new Date(startDate);
         const windowEnd = new Date(endDate);
-
         windowEnd.setHours(23, 59, 59, 999); 
 
-        for (const course of courses) {
-            const courseJson = course.toJSON();
+        // Séparer les cours non récurrente (ponctuels) des cours récurrents
+        const nonRecurrentCourses = courses.filter(c => !c.recurrent);
+        const recurrentCourses = courses.filter(c => c.recurrent);
 
-            if (!courseJson.recurrent) {
-                finalCourses.push(courseJson);
-                continue;
-            }
+        const finalCourses = [];
+
+        // 1. Ajouter d'abord tous les cours non récurrents
+        for (const course of nonRecurrentCourses) {
+            finalCourses.push(course.toJSON());
+        }
+
+        // 2. Traiter les cours récurrents et filtrer les occurrences en conflit
+        for (const course of recurrentCourses) {
+            const courseJson = course.toJSON();
 
             let currentStart = new Date(courseJson.startTime);
             let currentEnd = new Date(courseJson.endTime);
@@ -176,12 +181,22 @@ const getTypeAll = async (req, res, next) => {
 
             while (currentStart <= windowEnd && currentStart <= recurrentUntil) {
                 
-                finalCourses.push({
-                    ...courseJson,
-                    id: `${courseJson.id}_${currentStart.toISOString().split('T')[0]}`, 
-                    startTime: currentStart.toISOString(),
-                    endTime: currentEnd.toISOString(),
+                // Vérifier si cette occurrence chevauche un cours non récurrent existant
+                const hasConflict = nonRecurrentCourses.some(nc => {
+                    const ncStart = new Date(nc.startTime);
+                    const ncEnd = new Date(nc.endTime);
+                    return currentStart < ncEnd && currentEnd > ncStart;
                 });
+
+                // Si aucun conflit, on ajoute l'occurrence récurrente
+                if (!hasConflict) {
+                    finalCourses.push({
+                        ...courseJson,
+                        id: `${courseJson.id}_${currentStart.toISOString().split('T')[0]}`, 
+                        startTime: currentStart.toISOString(),
+                        endTime: currentEnd.toISOString(),
+                    });
+                }
 
                 currentStart.setDate(currentStart.getDate() + 7);
                 currentEnd.setDate(currentEnd.getDate() + 7);
@@ -195,4 +210,4 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default {create, update, delete: remove, getTypeAll};
+export default { create, update, delete: remove, getTypeAll };

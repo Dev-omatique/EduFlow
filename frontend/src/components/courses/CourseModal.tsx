@@ -11,6 +11,7 @@ type CourseStatus = { id: number; label: string }
 
 interface CourseToEdit {
   id: number | string
+  courseId?: number | string // Présent si c'est une instance/exception
   gradeId: number
   subjectId: number
   teacherId: number
@@ -65,6 +66,9 @@ export default function CourseModal({
   const [recurrent, setRecurrent] = useState<boolean>(false)
   const [recurrentUntil, setRecurrentUntil] = useState<string>('')
 
+  // État pour choisir le mode de modification des cours récurrents ('all' ou 'exception')
+  const [editScope, setEditScope] = useState<'all' | 'exception'>('all')
+
   // États de sécurité pour la suppression
   const [confirmDelete, setConfirmDelete] = useState<boolean>(false)
   const [deleting, setDeleting] = useState<boolean>(false)
@@ -74,10 +78,12 @@ export default function CourseModal({
   const [error, setError] = useState<string | null>(null)
 
   const isEditing = !!courseToEdit
+  const isRecurrentCourse = isEditing && !!courseToEdit.recurrent
 
   useEffect(() => {
     if (isOpen) {
-      setConfirmDelete(false) // Réinitialiser la checkbox à l'ouverture
+      setConfirmDelete(false)
+      setEditScope('all') // Réinitialiser au mode par défaut
       if (courseToEdit) {
         setGradeId(String(courseToEdit.gradeId || ''))
         setSubjectId(String(courseToEdit.subjectId || ''))
@@ -114,6 +120,7 @@ export default function CourseModal({
       setRecurrent(false)
       setRecurrentUntil('')
       setConfirmDelete(false)
+      setEditScope('all')
     }
   }, [isOpen, courseToEdit, defaultGradeId, initialDate, initialStartTime, initialEndTime])
 
@@ -177,23 +184,56 @@ export default function CourseModal({
       const startDateTime = new Date(`${courseDate}T${startTime}`)
       const endDateTime = new Date(`${courseDate}T${endTime}`)
 
-      const payload = {
-        gradeId: Number(gradeId),
-        subjectId: Number(subjectId),
-        teacherId: Number(teacherId),
-        roomId: Number(roomId),
-        statusId: statusId ? Number(statusId) : null,
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
-        recurrent,
-        recurrentUntil: recurrent && recurrentUntil ? recurrentUntil : null,
-      }
+      let url = `${API_BASE_URL}/api/courses`
+      let method = 'POST'
+      let payload: any = {}
 
-      const url = isEditing 
-        ? `${API_BASE_URL}/api/courses/${courseToEdit.id}` 
-        : `${API_BASE_URL}/api/courses`
-      
-      const method = isEditing ? 'PUT' : 'POST'
+      if (isEditing) {
+        if (editScope === 'exception') {
+          // Création d'une occurrence unique (exception) via l'API course classique
+          url = `${API_BASE_URL}/api/courses`
+          method = 'POST'
+          payload = {
+            gradeId: Number(gradeId),
+            subjectId: Number(subjectId),
+            teacherId: Number(teacherId),
+            roomId: Number(roomId),
+            statusId: statusId ? Number(statusId) : null,
+            startTime: startDateTime.toISOString(),
+            endTime: endDateTime.toISOString(),
+            recurrent: false,
+            recurrentUntil: null,
+          }
+        } else {
+          // Modification de toute la série de cours
+          url = `${API_BASE_URL}/api/courses/${courseToEdit.id}`
+          method = 'PUT'
+          payload = {
+            gradeId: Number(gradeId),
+            subjectId: Number(subjectId),
+            teacherId: Number(teacherId),
+            roomId: Number(roomId),
+            statusId: statusId ? Number(statusId) : null,
+            startTime: startDateTime.toISOString(),
+            endTime: endDateTime.toISOString(),
+            recurrent,
+            recurrentUntil: recurrent && recurrentUntil ? recurrentUntil : null,
+          }
+        }
+      } else {
+        // Création classique d'un nouveau cours
+        payload = {
+          gradeId: Number(gradeId),
+          subjectId: Number(subjectId),
+          teacherId: Number(teacherId),
+          roomId: Number(roomId),
+          statusId: statusId ? Number(statusId) : null,
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          recurrent,
+          recurrentUntil: recurrent && recurrentUntil ? recurrentUntil : null,
+        }
+      }
 
       const response = await fetch(url, {
         method,
@@ -204,7 +244,7 @@ export default function CourseModal({
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.message || (isEditing ? "Impossible de modifier le cours" : "Impossible de créer le cours"))
+        throw new Error(errData.message || "Impossible d'enregistrer les modifications")
       }
 
       onSuccess()
@@ -268,6 +308,39 @@ export default function CourseModal({
             {error && (
               <div className="p-3 text-xs rounded-xl bg-destructive/10 border border-destructive/20 text-destructive">
                 {error}
+              </div>
+            )}
+
+            {/* Option pour les cours récurrents */}
+            {isRecurrentCourse && (
+              <div className="p-3.5 rounded-xl bg-accent/50 border border-border space-y-2.5">
+                <label className="text-xs font-semibold block text-muted-foreground uppercase tracking-wider">
+                  Portée de la modification (Cours récurrent)
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="radio"
+                      name="editScope"
+                      value="all"
+                      checked={editScope === 'all'}
+                      onChange={() => setEditScope('all')}
+                      className="h-4 w-4 text-primary focus:ring-primary cursor-pointer"
+                    />
+                    <span>Modifier toute la série</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 text-sm cursor-pointer select-none">
+                    <input
+                      type="radio"
+                      name="editScope"
+                      value="exception"
+                      checked={editScope === 'exception'}
+                      onChange={() => setEditScope('exception')}
+                      className="h-4 w-4 text-primary focus:ring-primary cursor-pointer"
+                    />
+                    <span>Créer une exception (ce cours uniquement)</span>
+                  </label>
+                </div>
               </div>
             )}
 
@@ -368,9 +441,8 @@ export default function CourseModal({
                   </select>
                 </div>
 
-                {/* Date & Horaires (Séparés) */}
+                {/* Date & Horaires */}
                 <div className="space-y-3 pt-1">
-                  {/* Jour */}
                   <div>
                     <label className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
                       <Calendar className="h-4 w-4" /> Jour du cours
@@ -384,7 +456,6 @@ export default function CourseModal({
                     />
                   </div>
 
-                  {/* Heures : Début & Fin */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="text-xs font-semibold mb-1 flex items-center gap-1.5 text-muted-foreground">
@@ -414,42 +485,44 @@ export default function CourseModal({
                   </div>
                 </div>
 
-                {/* Récurrence */}
-                <div className="pt-2 border-t border-border space-y-3">
-                  <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
-                    <input
-                      type="checkbox"
-                      checked={recurrent}
-                      onChange={(e) => setRecurrent(e.target.checked)}
-                      className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-                    />
-                    <Repeat className="h-4 w-4 text-primary" />
-                    <span>Répéter toutes les semaines</span>
-                  </label>
-
-                  {recurrent && (
-                    <div>
-                      <label className="text-xs font-semibold mb-1 block text-muted-foreground">
-                        Jusqu'au (Date de fin de récurrence)
-                      </label>
+                {/* Récurrence (Affiché uniquement si ce n'est pas une exception isolée) */}
+                {(!isEditing || editScope === 'all') && (
+                  <div className="pt-2 border-t border-border space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm font-medium">
                       <input
-                        type="date"
-                        required={recurrent}
-                        value={recurrentUntil}
-                        onChange={(e) => setRecurrentUntil(e.target.value)}
-                        className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        type="checkbox"
+                        checked={recurrent}
+                        onChange={(e) => setRecurrent(e.target.checked)}
+                        className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
-                    </div>
-                  )}
-                </div>
+                      <Repeat className="h-4 w-4 text-primary" />
+                      <span>Répéter toutes les semaines</span>
+                    </label>
+
+                    {recurrent && (
+                      <div>
+                        <label className="text-xs font-semibold mb-1 block text-muted-foreground">
+                          Jusqu'au (Date de fin de récurrence)
+                        </label>
+                        <input
+                          type="date"
+                          required={recurrent}
+                          value={recurrentUntil}
+                          onChange={(e) => setRecurrentUntil(e.target.value)}
+                          className="w-full px-3 py-2 bg-background border border-border rounded-xl text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>
 
-          {/* Pied de page (Footer) avec boutons et zone de suppression à gauche */}
+          {/* Pied de page (Footer) */}
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-6 py-4 bg-card">
             
-            {/* Côté Gauche : Option de suppression (uniquement en mode édition) */}
+            {/* Suppression */}
             {isEditing ? (
               <div className="flex items-center gap-2">
                 <label className="flex items-center gap-1.5 text-xs font-medium cursor-pointer text-muted-foreground select-none">
@@ -472,10 +545,10 @@ export default function CourseModal({
                 </button>
               </div>
             ) : (
-              <div /> /* Espace vide pour garder l'alignement flex si non éditable */
+              <div />
             )}
 
-            {/* Côté Droit : Annuler et Enregistrer */}
+            {/* Actions */}
             <div className="flex items-center gap-2">
               <button
                 type="button"
@@ -490,7 +563,7 @@ export default function CourseModal({
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEditing ? "Modifier le cours" : "Créer le cours"}
+                {isEditing ? (editScope === 'exception' ? "Créer l'exception" : "Modifier la série") : "Créer le cours"}
               </button>
             </div>
 
