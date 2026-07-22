@@ -173,6 +173,21 @@ const getTypeAll = async (req, res, next) => {
                     model: db.CourseStatus,
                     as: 'status',
                     attributes: ['id', 'label']
+                },
+                {
+                    model: db.User,
+                    as: 'teacher',
+                    attributes: ['id', 'firstName', 'lastName']
+                },
+                {
+                    model: db.Room,
+                    as: 'Room',
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.Grade,
+                    as: 'Grade',
+                    attributes: ['id', 'name']
                 }
             ],
         });
