@@ -2,38 +2,34 @@
 
 import Sidebar from "@/components/layout/Sidebar";
 import CalendarWidget from "@/components/dashboard/CalendarWidget";
-import NotesWidget from "@/components/dashboard/NotesWidget";
 import NewsWidget from "@/components/dashboard/NewsWidget";
-import AttendanceWidget from "@/components/dashboard/AttendanceWidget";
 
-export default function DashboardPage() {
+export default function TeacherDashboardPage() {
   return (
     <>
       <Sidebar />
       <main className="min-h-screen bg-background p-4 lg:pl-[270px]">
         <div className="mx-auto w-full max-w-7xl space-y-6 py-6">
-          {/* Header de bienvenue */}
+          {/* Header de bienvenue Enseignant */}
           <div>
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
               Bonjour 👋
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Bienvenue sur votre espace ENT. Voici un aperçu de votre emploi du temps, de vos notes, absences et actualités.
+              Bienvenue sur votre espace enseignant. Voici vos cours prévus aujourd'hui et les dernières actualités de l'établissement.
             </p>
           </div>
 
-          {/* Grille principale en 2 colonnes (2/3 - 1/3) sur grand écran */}
+          {/* Grille des widgets */}
           <div className="grid gap-6 xl:grid-cols-3">
-            {/* Colonne principale (Emploi du temps + Notes) */}
+            {/* Planning / Cours du professeur */}
             <div className="space-y-6 xl:col-span-2">
               <CalendarWidget />
-              <NotesWidget />
             </div>
 
-            {/* Colonne secondaire (Actualités + Assiduité/Absences) */}
+            {/* Actualités de l'établissement */}
             <div className="space-y-6">
               <NewsWidget />
-              <AttendanceWidget />
             </div>
           </div>
         </div>

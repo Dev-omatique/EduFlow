@@ -141,15 +141,15 @@ const getMe = async (req, res, next) => {
             where: { id: req.user.userId },
             attributes: ["id", "username", "email", "firstName", "lastName", ],
             include: [
-            {
-            model: Roles,
-            attributes: ["id", "role"]
-        },
-        {
-            model: Grade,
-            attributes: ["id", "name"]
-        }
-      ]
+                    {
+                    model: Roles,
+                    attributes: ["id", "role"]
+                },
+                {
+                    model: Grade,
+                    attributes: ["id", "name"]
+                }
+            ]
         });
 
         if (!user) {

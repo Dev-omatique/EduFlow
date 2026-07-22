@@ -40,22 +40,22 @@ const getTypeAll = async (req, res, next) => {
         const { type, id } = req.params;
         const { startDate, endDate } = req.query;
 
-        // 1. Définition de la clé dynamique (teacherId ou gradeId)
         const typeMapping = {
             teacher: 'teacherId',
-            grade: 'gradeId'
+            grade: 'gradeId',
+            all: null
         };
+
+        if (!(type in typeMapping)) {
+            return res.status(400).json({ message: "Type invalide (doit être 'teacher', 'grade' ou 'all')" });
+        }
 
         const idKey = typeMapping[type];
 
-        // 2. Validation du type
-        if (!idKey) {
-            return res.status(400).json({ message: "Type invalide (doit être 'teacher' ou 'grade')" });
+        const where = {};
+        if (idKey) {
+            where[idKey] = Number(id);
         }
-
-        const where = {
-            [idKey]: Number(id),
-        };
 
         if (startDate || endDate) {
             where.startTime = {};
@@ -63,7 +63,29 @@ const getTypeAll = async (req, res, next) => {
             if (endDate) where.startTime[Op.lte] = endDate;
         }
 
-        const courses = await Course.findAll({ where });
+        const courses = await Course.findAll({
+            where,
+            include: [
+                {
+                    model: db.User,
+                    as: 'teacher',
+                    attributes: ['id', 'firstName', 'lastName']
+                },
+                {
+                    model: db.Room,
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.Grade,
+                    attributes: ['id', 'name']
+                },
+                {
+                    model: db.Subject,
+                    attributes: ['id', 'type']
+                },
+            ],
+        });
+
         res.json(courses);
 
     } catch (err) {
@@ -71,4 +93,32 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default {create, update, delete: remove, getTypeAll};
+const getStudents = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const course = await Course.findByPk(id);
+        if (!course) {
+            return res.status(404).json({ message: "Cours introuvable" });
+        }
+
+        const students = await db.User.findAll({
+            where: { gradeId: course.gradeId },
+            attributes: ['id', 'firstName', 'lastName'],
+            include: [
+                {
+                    association: 'Role',
+                    attributes: [],
+                    where: { role: 'STUDENT' },
+                    required: true,
+                },
+            ],
+        });
+
+        res.json(students);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export default { create, update, delete: remove, getTypeAll, getStudents };

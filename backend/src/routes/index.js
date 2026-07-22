@@ -15,6 +15,7 @@ import subjectRouter from './subjectRouter.js';
 import userRouter from './userRouter.js';
 import authRoutes from "./authRoutes.js";
 import { authRequired } from "../middlewares/authMiddleware.js";
+import sidebarRouter from './sidebarRouter.js';
 
 
 const router = Router();
@@ -40,6 +41,8 @@ router.use('/permissions', permissionRouter);
 router.use('/roles', roleRouter);
 router.use('/rooms', roomRouter);
 router.use('/subjects', subjectRouter);
+router.use('/sidebar', sidebarRouter);
+
 
 
 export default router;

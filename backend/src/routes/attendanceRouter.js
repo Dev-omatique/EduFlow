@@ -10,8 +10,6 @@ attendanceRouter.put('/:id', checkPermission('EDIT_ATTENDANCE'), attendanceContr
 
 attendanceRouter.delete('/:id', checkPermission('EDIT_ATTENDANCE'), attendanceController.delete);
 
-// ---------------------------------------------------- //
-
 attendanceRouter.get('/:type/:id', checkPermission('VIEW_ATTENDANCE'), attendanceController.getTypeAll);
 
 export default attendanceRouter;

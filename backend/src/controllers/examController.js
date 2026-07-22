@@ -1,12 +1,23 @@
 import { Op } from 'sequelize';
 import db from '../models/index.js'
 
-const { Exam } = db
+const { Exam, Subject, Grade, User, Roles } = db;
 
 const getOne = async (req, res, next) => {
   try {
-    const exam = await Exam.findOne({where : { gradeId : req.params.id }});
-    res.status(201).json(exam);
+    const exam = await Exam.findOne({
+      where: { id: Number(req.params.id) },
+      include: [
+        { model: Subject, attributes: ['id', 'type'] },
+        { model: Grade, attributes: ['id', 'name'] }
+      ]
+    });
+
+    if (!exam) {
+      return res.status(404).json({ message: 'Exam not found' });
+    }
+
+    res.status(200).json(exam);
   } catch (err) {
     next(err);
   }
@@ -44,6 +55,32 @@ const remove = async (req, res, next) => {
   }
 };
 
+const getStudentsByExam = async (req, res, next) => {
+  try {
+    const exam = await Exam.findOne({ where: { id: Number(req.params.id) } });
+    if (!exam) {
+      return res.status(404).json({ message: 'Exam not found' });
+    }
+
+    const students = await User.findAll({
+      where: { gradeId: exam.gradeId },
+      include: [
+        {
+          model: Roles,
+          attributes: ['id', 'role'],
+          where: { role: 'STUDENT' },
+          required: true
+        }
+      ],
+      attributes: ['id', 'firstName', 'lastName', 'gradeId'],
+      order: [['lastName', 'ASC'], ['firstName', 'ASC']],
+    });
+
+    res.json(students);
+  } catch (err) {
+    next(err);
+  }
+};
 
 const getTypeAll = async (req, res, next) => {
   try {
@@ -65,18 +102,24 @@ const getTypeAll = async (req, res, next) => {
       [idKey]: Number(id),
     };
 
-     if (startDate || endDate) {
+    if (startDate || endDate) {
       where.dueDate = {};
       if (startDate) where.dueDate[Op.gte] = startDate;
       if (endDate) where.dueDate[Op.lte] = endDate;
     }
 
-    const exams = await Exam.findAll({ where });
+    const exams = await Exam.findAll({
+      where,
+      include: [
+        { model: Subject, attributes: ['id', 'type'] },
+        { model: Grade, attributes: ['id', 'name'] },
+      ],
+      order: [['dueDate', 'ASC']],
+    });
     res.json(exams);
-    
   } catch (err) {
     next(err);
   }
 };
 
-export default { getOne,create,update, delete: remove, getTypeAll };
+export default { getOne, create, update, delete: remove, getStudentsByExam, getTypeAll };

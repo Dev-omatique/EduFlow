@@ -9,7 +9,7 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Note.hasOne(models.Exam,{ foreignKey: "examId" })
+       Note.belongsTo(models.Exam, { foreignKey: "examId" });
     }
   }
   Note.init({
