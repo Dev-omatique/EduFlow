@@ -6,7 +6,7 @@ const { User } = db;
 
 const cookieOptions = {
   httpOnly: true,
-  sameSite: "none",
+  sameSite: "lax",
   secure: process.env.NODE_ENV === "production",
   path: "/",
 };

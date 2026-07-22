@@ -475,87 +475,42 @@ export default function Notes() {
               <p className="text-sm text-slate-600">{notes.length} note{notes.length > 1 ? "s" : ""}</p>
             </div>
 
-            <div className="lg:hidden">
-              {notes.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-slate-50 p-6 text-center text-sm text-muted-foreground shadow-sm">
-                  Aucune note disponible.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {notes.map((note) => (
-                    <button
-                      key={note.id}
-                      type="button"
-                      onClick={() => setSelectedNote(note)}
-                      className="w-full rounded-3xl border border-border bg-slate-50 p-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-100"
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-900">{note.Exam?.Subject?.type ?? "Matière inconnue"}</p>
-                          <p className="mt-1 text-sm text-slate-700">{note.Exam?.title}</p>
-                        </div>
-                        <div className="rounded-2xl bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
-                          {formatDate(note.createdAt)}
-                        </div>
-                      </div>
-                      <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-700">
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Note</p>
-                          <p className="mt-1 font-semibold text-slate-900">{note.grade}/{parseFloat(note.Exam?.maxNotes ?? "20")}</p>
-                        </div>
-                        <div>
-                          <p className="text-xs uppercase tracking-wide text-muted-foreground">Coef.</p>
-                          <p className="mt-1 font-semibold text-slate-900">{note.Exam?.coefficient}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="hidden lg:block">
-              <div className="overflow-x-auto rounded-2xl border border-border shadow-sm">
-                <table className="w-full text-left">
-                  <thead className="bg-slate-50">
-                    <tr>
-                      <th className="px-4 py-3 text-sm font-semibold text-slate-600">Matière</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-slate-600">Contrôle</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-slate-600">Note</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-slate-600">Coef.</th>
-                      <th className="px-4 py-3 text-sm font-semibold text-slate-600">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notes.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-6 text-center text-muted-foreground">
-                          Aucune note disponible.
-                        </td>
-                      </tr>
-                    ) : (
-                      notes.map((note) => (
-                        <tr
-                          key={note.id}
-                          onClick={() => setSelectedNote(note)}
-                          className="cursor-pointer border-t border-border transition-colors hover:bg-slate-50"
-                        >
-                          <td className="px-4 py-3">{note.Exam?.Subject?.type ?? "Matière inconnue"}</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground">{note.Exam?.title}</td>
-                          <td className="px-4 py-3 font-semibold">
-                            {note.grade}/{parseFloat(note.Exam?.maxNotes ?? "20")}
-                          </td>
-                          <td className="px-4 py-3">{note.Exam?.coefficient}</td>
-                          <td className="px-4 py-3 text-sm text-muted-foreground">
-                            {formatDate(note.createdAt)}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+            {notes.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-slate-50 p-6 text-center text-sm text-muted-foreground shadow-sm">
+                Aucune note disponible.
               </div>
-            </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {notes.map((note) => (
+                  <button
+                    key={note.id}
+                    type="button"
+                    onClick={() => setSelectedNote(note)}
+                    className="w-full rounded-3xl border border-border bg-slate-50 p-4 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-100"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-900">{note.Exam?.Subject?.type ?? "Matière inconnue"}</p>
+                        <p className="mt-1 text-sm text-slate-700">{note.Exam?.title}</p>
+                      </div>
+                      <div className="rounded-2xl bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700">
+                        {formatDate(note.createdAt)}
+                      </div>
+                    </div>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-slate-700">
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Note</p>
+                        <p className="mt-1 font-semibold text-slate-900">{note.grade}/{parseFloat(note.Exam?.maxNotes ?? "20")}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Coef.</p>
+                        <p className="mt-1 font-semibold text-slate-900">{note.Exam?.coefficient}</p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, ArrowLeft, User, BookOpen, Pencil, CheckCircle } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
@@ -112,7 +112,8 @@ function formatDate(date?: string | null) {
   });
 }
 
-export default function ExamDetailPage({ params }: { params: { id: string } }) {
+export default function ExamDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: examId } = use(params);
   const { user, isLoading: authLoading } = useAuth();
   const [exam, setExam] = useState<ExamDetail | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
@@ -121,8 +122,6 @@ export default function ExamDetailPage({ params }: { params: { id: string } }) {
   const [submitState, setSubmitState] = useState<{ status: 'idle' | 'saving' | 'success' | 'error'; message?: string }>({ status: 'idle' });
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  const url = window.location.pathname;
-  const examId = url.substring(url.lastIndexOf('/') + 1);
   const [existingNotesByStudent, setExistingNotesByStudent] = useState<Record<number, ExistingNote>>({});
 
   const [studentsLoading, setStudentsLoading] = useState(true);
@@ -148,7 +147,7 @@ export default function ExamDetailPage({ params }: { params: { id: string } }) {
     };
 
     fetchData();
-  }, [authLoading, user, params.id]);
+  }, [authLoading, user, examId]);
 
   const canEdit = useMemo(() => user?.Role.role === "TEACHER", [user]);
 
