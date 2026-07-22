@@ -1,10 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Loader2, CalendarDays, BookOpen, Users } from "lucide-react";
+import { Loader2, CalendarDays, BookOpen, Users, Filter, AlertCircle, FileText } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useAuth } from "@/context/AuthContext";
+
+// Composants shadcn/ui
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type ExamItem = {
   id: number;
@@ -63,6 +77,9 @@ export default function ExamListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const [selectedGrade, setSelectedGrade] = useState<string>("all");
+  const [selectedDate, setSelectedDate] = useState<string>("");
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -82,6 +99,34 @@ export default function ExamListPage() {
       .finally(() => setLoading(false));
   }, [authLoading, user]);
 
+  const availableGrades = useMemo(() => {
+    const names = exams
+      .map((exam) => exam.Grade?.name)
+      .filter((name): name is string => Boolean(name));
+    return Array.from(new Set(names)).sort();
+  }, [exams]);
+
+  const filteredExams = useMemo(() => {
+    return exams.filter((exam) => {
+      const matchesGrade =
+        selectedGrade === "all" || exam.Grade?.name === selectedGrade;
+
+      const matchesDate =
+        !selectedDate ||
+        (exam.dueDate &&
+          new Date(exam.dueDate).toISOString().slice(0, 10) === selectedDate);
+
+      return matchesGrade && matchesDate;
+    });
+  }, [exams, selectedGrade, selectedDate]);
+
+  const hasActiveFilters = selectedGrade !== "all" || selectedDate !== "";
+
+  const resetFilters = () => {
+    setSelectedGrade("all");
+    setSelectedDate("");
+  };
+
   if (authLoading || loading) {
     return (
       <>
@@ -97,11 +142,14 @@ export default function ExamListPage() {
     return (
       <>
         <Sidebar />
-        <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-destructive/20 bg-destructive/5 text-destructive max-w-md mx-auto my-12 lg:ml-[270px]">
-          <p className="font-semibold text-lg">Connexion requise</p>
-          <p className="mt-2 text-sm opacity-80">
-            Veuillez vous connecter pour accéder à la liste des examens.
-          </p>
+        <div className="p-8 lg:ml-[270px] max-w-md mx-auto my-12">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connexion requise</AlertTitle>
+            <AlertDescription>
+              Veuillez vous connecter pour accéder à la liste des examens.
+            </AlertDescription>
+          </Alert>
         </div>
       </>
     );
@@ -112,71 +160,128 @@ export default function ExamListPage() {
       <Sidebar />
       <main className="min-h-screen bg-background p-4 lg:pl-[270px]">
         <div className="mx-auto w-full max-w-7xl space-y-6 py-6">
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <Card>
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0 pb-6">
               <div>
-                <h1 className="text-2xl font-bold text-slate-900">Examens</h1>
-                <p className="mt-2 text-sm text-slate-600">
+                <CardTitle className="text-2xl font-bold">Examens</CardTitle>
+                <CardDescription className="mt-1">
                   {user.Role.role === "TEACHER"
                     ? "Sélectionnez un contrôle pour ouvrir la feuille de notes."
                     : "Consultez les examens prévus pour votre classe."}
-                </p>
+                </CardDescription>
               </div>
-              <div className="inline-flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-2 text-sm text-slate-700">
+
+              <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-xs font-medium w-fit">
                 <BookOpen className="h-4 w-4 text-primary" />
-                {exams.length} examen{exams.length > 1 ? "s" : ""}
-              </div>
-            </div>
+                {filteredExams.length} examen{filteredExams.length > 1 ? "s" : ""}
+              </Badge>
+            </CardHeader>
 
-            {error ? (
-              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {error}
-              </div>
-            ) : exams.length === 0 ? (
-              <div className="rounded-2xl border border-border bg-slate-50 p-6 text-center text-sm text-slate-600">
-                Aucun examen à afficher pour le moment.
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                {exams.map((exam) => (
-                  <Link
-                    key={exam.id}
-                    href={`/notes/exams/${exam.id}`}
-                    className="group rounded-3xl border border-border bg-slate-50 p-5 transition hover:border-primary hover:bg-white"
+            <CardContent className="space-y-6">
+              {/* Barre de filtres */}
+              <div className="flex flex-wrap items-center gap-3 rounded-lg border bg-muted/40 p-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mr-2">
+                  <Filter className="h-4 w-4" />
+                  Filtres
+                </div>
+
+                <Select value={selectedGrade} onValueChange={setSelectedGrade}>
+                  <SelectTrigger className="w-[180px] h-9 bg-background">
+                    <SelectValue placeholder="Toutes les classes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toutes les classes</SelectItem>
+                    {availableGrades.map((name) => (
+                      <SelectItem key={name} value={name}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-auto h-9 bg-background"
+                />
+
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetFilters}
+                    className="text-primary hover:text-primary/80 h-9"
                   >
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                          {exam.Subject?.type || "Matière"}
-                        </p>
-                        <h2 className="mt-3 text-lg font-semibold text-slate-900">
-                          {exam.title}
-                        </h2>
-                      </div>
-                      <div className="rounded-2xl bg-primary/10 px-3 py-2 text-xs font-semibold text-primary">
-                        {exam.coefficient}x
-                      </div>
-                    </div>
-
-                    <p className="mt-4 text-sm leading-6 text-slate-600">
-                      {exam.description || "Pas de description"}
-                    </p>
-
-                    <div className="mt-5 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                        <CalendarDays className="h-4 w-4 text-slate-400" />
-                        {formatDate(exam.dueDate)}
-                      </span>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1">
-                        <Users className="h-4 w-4 text-slate-400" />
-                        {exam.Grade?.name || "Classe"}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                    Réinitialiser
+                  </Button>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Affichage des examens ou messages */}
+              {error ? (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Erreur</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : filteredExams.length === 0 ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center text-muted-foreground">
+                  <FileText className="h-10 w-10 stroke-1 mb-3 text-muted-foreground/60" />
+                  <p className="text-sm font-medium">
+                    {exams.length === 0
+                      ? "Aucun examen à afficher pour le moment."
+                      : "Aucun examen ne correspond à ces filtres."}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {filteredExams.map((exam) => (
+                    <Link
+                      key={exam.id}
+                      href={`/notes/exams/${exam.id}`}
+                      className="group block"
+                    >
+                      <Card className="h-full transition-all duration-200 hover:border-primary hover:shadow-md">
+                        <CardHeader className="space-y-3 pb-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                {exam.Subject?.type || "Matière"}
+                              </p>
+                              <CardTitle className="mt-1 text-lg font-bold group-hover:text-primary transition-colors">
+                                {exam.title}
+                              </CardTitle>
+                            </div>
+                            <Badge variant="secondary" className="shrink-0 font-semibold bg-primary/10 text-primary border-none">
+                              Coeff {exam.coefficient}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+
+                        <CardContent className="space-y-4">
+                          <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                            {exam.description || "Pas de description"}
+                          </p>
+
+                          <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-xs text-muted-foreground">
+                            <Badge variant="outline" className="gap-1.5 font-normal">
+                              <CalendarDays className="h-3.5 w-3.5" />
+                              {formatDate(exam.dueDate)}
+                            </Badge>
+                            <Badge variant="outline" className="gap-1.5 font-normal">
+                              <Users className="h-3.5 w-3.5" />
+                              {exam.Grade?.name || "Classe"}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </main>
     </>
