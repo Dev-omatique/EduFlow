@@ -12,6 +12,8 @@ courseRouter.delete('/:id', checkPermission('MANAGE_SCHEDULE'), courseController
 
 // ---------------------------------------------------- //
 
+courseRouter.get('/:id/students', checkPermission('VIEW_SCHEDULE'), courseController.getStudents);
+
 courseRouter.get('/:type/:id', checkPermission('VIEW_SCHEDULE'), courseController.getTypeAll);
 
 export default courseRouter;

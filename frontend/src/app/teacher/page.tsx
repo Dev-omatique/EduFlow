@@ -1,99 +1,39 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
 import Sidebar from "@/components/layout/Sidebar";
+import CalendarWidget from "@/components/dashboard/CalendarWidget";
+import NewsWidget from "@/components/dashboard/NewsWidget";
 
-export default function DashboardPage() {
+export default function TeacherDashboardPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <>
       <Sidebar />
-
-      <main className="w-full px-4 py-6 pt-20 lg:ml-[250px] lg:w-[calc(100%-250px)] lg:p-6">
-        <div className="mx-auto w-full max-w-7xl space-y-6">
-          {/* Titre */}
+      <main className="min-h-screen bg-background p-4 lg:pl-[270px]">
+        <div className="mx-auto w-full max-w-7xl space-y-6 py-6">
+          {/* Header de bienvenue Enseignant */}
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
               Bonjour 👋
             </h1>
-            <p className="text-sm text-slate-500">
-              Bienvenue sur votre espace ENT.
+            <p className="mt-1 text-sm text-muted-foreground">
+              Bienvenue sur votre espace enseignant. Voici vos cours prévus aujourd'hui et les dernières actualités de l'établissement.
             </p>
           </div>
 
-          {/* Grid dashboard */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            <Card className="rounded-2xl border-0 shadow-sm lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Emploi du temps</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-xl bg-slate-50 p-6 text-slate-600">
-                  Aucun cours affiché pour le moment.
-                </div>
-              </CardContent>
-            </Card>
+          {/* Grille des widgets */}
+          <div className="grid gap-6 xl:grid-cols-3">
+            {/* Planning / Cours du professeur */}
+            <div className="space-y-6 xl:col-span-2">
+              <CalendarWidget />
+            </div>
 
-            <Card className="rounded-2xl border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Prochains devoirs</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Mathématiques — lundi
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Histoire — mercredi
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Anglais — vendredi
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Notes récentes</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
-                  <span>Maths</span>
-                  <span className="font-semibold text-slate-800">15/20</span>
-                </div>
-                <div className="flex items-center justify-between rounded-xl bg-slate-50 p-4">
-                  <span>Français</span>
-                  <span className="font-semibold text-slate-800">13/20</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Messages</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Nouveau message du professeur principal.
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Réunion parents-professeurs prévue.
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-2xl border-0 shadow-sm">
-              <CardHeader>
-                <CardTitle>Informations</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-slate-600">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Vacances scolaires dans 2 semaines.
-                </div>
-                <div className="rounded-xl bg-slate-50 p-4">
-                  Inscription cantine ouverte.
-                </div>
-              </CardContent>
-            </Card>
+            {/* Actualités de l'établissement */}
+            <div className="space-y-6">
+              <NewsWidget />
+            </div>
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 }
