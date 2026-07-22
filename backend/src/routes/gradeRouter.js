@@ -10,6 +10,8 @@ gradeRouter.get('/type', checkPermission('VIEW_STUDENT_LIST'), gradeController.g
 
 gradeRouter.get('/:id', checkPermission('VIEW_STUDENT_LIST'), gradeController.getOne);
 
+gradeRouter.get('/', checkPermission('VIEW_STUDENT_LIST'), gradeController.getAll);
+
 gradeRouter.post('/', checkPermission('MANAGE_CLASSES'), gradeController.create);
 
 gradeRouter.put('/:id', checkPermission('MANAGE_CLASSES'), gradeController.update);

@@ -77,5 +77,20 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
+/**
+ * Récupère toutes les classes (Grades)
+ */
+const getAll = async (req, res, next) => {
+    try {
+        const grades = await Grade.findAll({
+            order: [['name', 'ASC']]
+        });
+        
+        res.json(grades);
+    } catch (err) {
+        next(err);
+    }
+};
 
-export default { getOne, create, update, delete: remove, getTypeAll };
+
+export default { getOne, create, update, delete: remove, getTypeAll, getAll};
