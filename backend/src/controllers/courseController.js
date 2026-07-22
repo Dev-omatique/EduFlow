@@ -95,13 +95,19 @@ const getTypeAll = async (req, res, next) => {
 
         const typeMapping = {
             teacher: 'teacherId',
-            grade: 'gradeId'
+            grade: 'gradeId',
+            all: null
         };
+
+        if (!(type in typeMapping)) {
+            return res.status(400).json({ message: "Type invalide (doit être 'teacher', 'grade' ou 'all')" });
+        }
 
         const idKey = typeMapping[type];
 
-        if (!idKey) {
-            return res.status(400).json({ message: "Type invalide (doit être 'teacher' ou 'grade')" });
+        const where = {};
+        if (idKey) {
+            where[idKey] = Number(id);
         }
 
         const where = {
@@ -128,19 +134,19 @@ const getTypeAll = async (req, res, next) => {
                 {
                     model: db.User,
                     as: 'teacher',
-                    attributes: ['firstName', 'lastName']
+                    attributes: ['id', 'firstName', 'lastName']
                 },
                 {
                     model: db.Room,
-                    attributes: ['name']
+                    attributes: ['id', 'name']
                 },
                 {
                     model: db.Grade,
-                    attributes: ['name']
+                    attributes: ['id', 'name']
                 },
                 {
                     model: db.Subject,
-                    attributes: ['type']
+                    attributes: ['id', 'type']
                 },
                 {
                     model: db.CourseStatus,
@@ -210,4 +216,32 @@ const getTypeAll = async (req, res, next) => {
     }
 };
 
-export default { create, update, delete: remove, getTypeAll };
+const getStudents = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const course = await Course.findByPk(id);
+        if (!course) {
+            return res.status(404).json({ message: "Cours introuvable" });
+        }
+
+        const students = await db.User.findAll({
+            where: { gradeId: course.gradeId },
+            attributes: ['id', 'firstName', 'lastName'],
+            include: [
+                {
+                    association: 'Role',
+                    attributes: [],
+                    where: { role: 'STUDENT' },
+                    required: true,
+                },
+            ],
+        });
+
+        res.json(students);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export default { create, update, delete: remove, getTypeAll, getStudents };
