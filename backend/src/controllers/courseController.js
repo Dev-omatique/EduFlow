@@ -33,6 +33,17 @@ const create = async (req, res, next) => {
     }
 };
 
+const remove = async (req, res, next) => {
+    try {
+        await Course.destroy({
+            where: { id: req.params.id },
+        });
+        res.json({ message: "successful delete" });
+    } catch (err) {
+        next(err);
+    }
+};
+
 const update = async (req, res, next) => {
     try {
         const courseId = req.params.id;
@@ -77,15 +88,50 @@ const update = async (req, res, next) => {
     }
 };
 
-const remove = async (req, res, next) => {
-    try {
-        await Course.destroy({
-            where: { id: req.params.id },
-        });
-        res.json({ message: "successful delete" });
-    } catch (err) {
-        next(err);
+const expandRecurrentCourses = (courses, windowStart, windowEnd, nonRecurrentCourses) => {
+    const finalCourses = [];
+    
+    for (const course of nonRecurrentCourses) {
+        finalCourses.push(course.toJSON());
     }
+
+    const recurrentCourses = courses.filter(c => c.recurrent);
+    const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+    for (const course of recurrentCourses) {
+        const courseJson = course.toJSON();
+        let currentStart = new Date(courseJson.startTime);
+        let currentEnd = new Date(courseJson.endTime);
+        const recurrentUntil = new Date(courseJson.recurrentUntil);
+        recurrentUntil.setHours(23, 59, 59, 999);
+
+        while (currentStart < windowStart) {
+            currentStart = new Date(currentStart.getTime() + ONE_WEEK_MS);
+            currentEnd = new Date(currentEnd.getTime() + ONE_WEEK_MS);
+        }
+
+        while (currentStart <= windowEnd && currentStart <= recurrentUntil) {
+            const hasConflict = nonRecurrentCourses.some(nc => {
+                const ncStart = new Date(nc.startTime);
+                const ncEnd = new Date(nc.endTime);
+                return currentStart < ncEnd && currentEnd > ncStart;
+            });
+
+            if (!hasConflict) {
+                finalCourses.push({
+                    ...courseJson,
+                    id: `${courseJson.id}_${currentStart.toISOString().split('T')[0]}`, 
+                    startTime: currentStart.toISOString(),
+                    endTime: currentEnd.toISOString(),
+                });
+            }
+
+            currentStart = new Date(currentStart.getTime() + ONE_WEEK_MS);
+            currentEnd = new Date(currentEnd.getTime() + ONE_WEEK_MS);
+        }
+    }
+
+    return finalCourses;
 };
 
 const getTypeAll = async (req, res, next) => {
@@ -93,21 +139,12 @@ const getTypeAll = async (req, res, next) => {
         const { type, id } = req.params;
         const { startDate, endDate } = req.query;
 
-        const typeMapping = {
-            teacher: 'teacherId',
-            grade: 'gradeId',
-            all: null
-        };
-
-        if (!(type in typeMapping)) {
-            return res.status(400).json({ message: "Type invalide (doit être 'teacher', 'grade' ou 'all')" });
-        }
-
-        const idKey = typeMapping[type];
-
         const where = {};
-        if (idKey) {
-            where[idKey] = Number(id);
+        if (type && id) {
+            const idKey = type === 'teacher' ? 'teacherId' : type === 'grade' ? 'gradeId' : type === 'room' ? 'roomId' : null;
+            if (idKey) {
+                where[idKey] = Number(id);
+            }
         }
 
         if (startDate && endDate) {
@@ -127,19 +164,6 @@ const getTypeAll = async (req, res, next) => {
         const courses = await Course.findAll({
             where,
             include: [
-                {
-                    model: db.User,
-                    as: 'teacher',
-                    attributes: ['id', 'firstName', 'lastName']
-                },
-                {
-                    model: db.Room,
-                    attributes: ['id', 'name']
-                },
-                {
-                    model: db.Grade,
-                    attributes: ['id', 'name']
-                },
                 {
                     model: db.Subject,
                     attributes: ['id', 'type']
@@ -161,50 +185,9 @@ const getTypeAll = async (req, res, next) => {
         windowEnd.setHours(23, 59, 59, 999); 
 
         const nonRecurrentCourses = courses.filter(c => !c.recurrent);
-        const recurrentCourses = courses.filter(c => c.recurrent);
-
-        const finalCourses = [];
-
-        for (const course of nonRecurrentCourses) {
-            finalCourses.push(course.toJSON());
-        }
-
-        for (const course of recurrentCourses) {
-            const courseJson = course.toJSON();
-
-            let currentStart = new Date(courseJson.startTime);
-            let currentEnd = new Date(courseJson.endTime);
-            const recurrentUntil = new Date(courseJson.recurrentUntil);
-            recurrentUntil.setHours(23, 59, 59, 999);
-
-            while (currentStart < windowStart) {
-                currentStart.setDate(currentStart.getDate() + 7);
-                currentEnd.setDate(currentEnd.getDate() + 7);
-            }
-
-            while (currentStart <= windowEnd && currentStart <= recurrentUntil) {
-                const hasConflict = nonRecurrentCourses.some(nc => {
-                    const ncStart = new Date(nc.startTime);
-                    const ncEnd = new Date(nc.endTime);
-                    return currentStart < ncEnd && currentEnd > ncStart;
-                });
-
-                if (!hasConflict) {
-                    finalCourses.push({
-                        ...courseJson,
-                        id: `${courseJson.id}_${currentStart.toISOString().split('T')[0]}`, 
-                        startTime: currentStart.toISOString(),
-                        endTime: currentEnd.toISOString(),
-                    });
-                }
-
-                currentStart.setDate(currentStart.getDate() + 7);
-                currentEnd.setDate(currentEnd.getDate() + 7);
-            }
-        }
+        const finalCourses = expandRecurrentCourses(courses, windowStart, windowEnd, nonRecurrentCourses);
 
         res.json(finalCourses);
-
     } catch (err) {
         next(err);
     }
