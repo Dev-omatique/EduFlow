@@ -12,6 +12,16 @@ import Sidebar from "@/components/layout/Sidebar"
 import CreateCourseModal from "@/components/courses/CourseModal"
 import CourseDetailsModal, { CourseDetails } from "@/components/courses/CourseDetailsModal"
 
+// Importation des composants Shadcn UI
+import { Button } from "@/components/ui/button"
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select"
+
 type CourseBackend = {
   id: number | string
   startTime: string
@@ -292,30 +302,31 @@ export default function Calendar() {
               </div>
 
               <div className="flex items-center gap-2">
-                <select
-                  value={selectedGradeId ?? ''}
-                  onChange={(e) => setSelectedGradeId(Number(e.target.value))}
-                  className="px-3 py-2 bg-background border border-border text-foreground rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer max-w-xs"
+                <Select
+                  value={selectedGradeId ? String(selectedGradeId) : undefined}
+                  onValueChange={(value) => setSelectedGradeId(Number(value))}
+                  disabled={grades.length === 0}
                 >
-                  {grades.length === 0 ? (
-                    <option value="" disabled>Aucune classe disponible</option>
-                  ) : (
-                    grades.map((grade) => (
-                      <option key={grade.id} value={grade.id}>
+                  <SelectTrigger className="w-[200px] bg-background border-border text-foreground rounded-xl">
+                    <SelectValue placeholder={grades.length === 0 ? "Aucune classe" : "Sélectionner une classe"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {grades.map((grade) => (
+                      <SelectItem key={grade.id} value={String(grade.id)}>
                         {grade.name}
-                      </option>
-                    ))
-                  )}
-                </select>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-                <button
+                <Button
                   type="button"
                   onClick={openModalManually}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors shadow-xs cursor-pointer whitespace-nowrap"
+                  className="inline-flex items-center gap-1.5 rounded-xl text-sm font-medium shadow-xs cursor-pointer whitespace-nowrap"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Créer</span>
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -403,7 +414,6 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   const durationMinutes = start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 60
   const isShortEvent = durationMinutes <= 30
 
-  // Correction : Éviter les template literals imbriqués en extrayant la logique
   const statusSuffix = statusLabel ? ` (${statusLabel})` : ''
   const tooltipTitle = `${eventInfo.event.title} - ${room}${statusSuffix}`
 

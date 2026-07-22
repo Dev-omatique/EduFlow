@@ -1,6 +1,14 @@
 'use client'
 
-import { X, Calendar as CalendarIcon, Clock, MapPin, User as UserIcon, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, MapPin, User as UserIcon, AlertCircle } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog"
 
 export type CourseDetails = {
   readonly title: string
@@ -26,8 +34,6 @@ export default function CourseDetailsModal({
   course, 
   userRole 
 }: CourseDetailsModalProps) {
-  if (!isOpen) return null
-
   const startDate = new Date(course.start)
   const endDate = new Date(course.end)
 
@@ -44,25 +50,18 @@ export default function CourseDetailsModal({
   const isStudent = userRole === "STUDENT"
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-      <div className="bg-card border border-border text-foreground rounded-2xl shadow-xl w-full max-w-md overflow-hidden flex flex-col">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md bg-card border border-border text-foreground rounded-2xl overflow-hidden flex flex-col p-0">
         
         {/* En-tête */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-background/50">
+        <DialogHeader className="flex flex-row items-center justify-between px-6 py-4 border-b border-border bg-background/50 space-y-0">
           <div className="flex items-center gap-2">
             <span className="p-2 bg-primary/10 text-primary rounded-xl">
               <CalendarIcon className="h-5 w-5" />
             </span>
-            <h3 className="font-semibold text-lg">Détails du cours</h3>
+            <DialogTitle className="font-semibold text-lg">Détails du cours</DialogTitle>
           </div>
-          <button 
-            type="button"
-            onClick={onClose}
-            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        </DialogHeader>
 
         {/* Corps */}
         <div className="p-6 flex flex-col gap-4">
@@ -116,17 +115,17 @@ export default function CourseDetailsModal({
         </div>
 
         {/* Pied */}
-        <div className="px-6 py-4 border-t border-border bg-background/50 flex justify-end">
-          <button
+        <DialogFooter className="px-6 py-4 border-t border-border bg-background/50 flex justify-end">
+          <Button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors cursor-pointer"
+            className="rounded-xl text-sm font-medium cursor-pointer"
           >
             Fermer
-          </button>
-        </div>
+          </Button>
+        </DialogFooter>
 
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
