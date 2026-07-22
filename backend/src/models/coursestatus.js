@@ -10,7 +10,7 @@ export default (sequelize, DataTypes) => {
   }
 
   CourseStatus.init({
-    nom: {
+    label: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
