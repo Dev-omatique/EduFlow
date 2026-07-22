@@ -139,13 +139,14 @@ const getTypeAll = async (req, res, next) => {
         const { type, id } = req.params;
         const { startDate, endDate } = req.query;
 
-        const where = {};
-        if (type && id) {
-            const idKey = type === 'teacher' ? 'teacherId' : type === 'grade' ? 'gradeId' : type === 'room' ? 'roomId' : null;
-            if (idKey) {
-                where[idKey] = Number(id);
-            }
+        const validTypes = ['teacher', 'grade', 'room'];
+        if (!validTypes.includes(type)) {
+            return res.status(400).json({ message: "Type invalide" });
         }
+
+        const where = {};
+        const idKey = type === 'teacher' ? 'teacherId' : type === 'grade' ? 'gradeId' : 'roomId';
+        where[idKey] = Number(id);
 
         if (startDate && endDate) {
             where[Op.or] = [
