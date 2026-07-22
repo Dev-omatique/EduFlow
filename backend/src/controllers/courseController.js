@@ -105,14 +105,11 @@ const getTypeAll = async (req, res, next) => {
 
         const idKey = typeMapping[type];
 
+        // Une seule déclaration propre de 'where'
         const where = {};
         if (idKey) {
             where[idKey] = Number(id);
         }
-
-        const where = {
-            [idKey]: Number(id),
-        };
 
         if (startDate && endDate) {
             where[Op.or] = [
@@ -160,7 +157,7 @@ const getTypeAll = async (req, res, next) => {
         const windowEnd = new Date(endDate);
         windowEnd.setHours(23, 59, 59, 999); 
 
-        // Séparer les cours non récurrente (ponctuels) des cours récurrents
+        // Séparer les cours non récurrents (ponctuels) des cours récurrents
         const nonRecurrentCourses = courses.filter(c => !c.recurrent);
         const recurrentCourses = courses.filter(c => c.recurrent);
 
