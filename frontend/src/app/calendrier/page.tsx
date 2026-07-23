@@ -420,7 +420,12 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   // Style dynamique : bordure nette aux couleurs de la matière, fond plein mais très pâle
   const dynamicStyle = subjectColor ? {
     borderLeftColor: subjectColor,
-    backgroundColor: getPastelHex(subjectColor, 0.85), // 85% de blanc mélangé pour un fond pastel solide
+    backgroundColor: getPastelHex(subjectColor, 0.85),
+  } : {}
+
+  // Style pour le bandeau de statut (fond orange pâle, bordure inférieure selon la matière)
+  const statusStyle = subjectColor ? {
+    borderBottom: `3px solid ${subjectColor}`,
   } : {}
 
   const statusSuffix = statusLabel ? ` (${statusLabel})` : ''
@@ -439,7 +444,10 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {statusLabel && (
-            <span className="text-[8px] bg-amber-500 text-white px-1 py-0.5 rounded font-bold uppercase">
+            <span 
+              style={statusStyle}
+              className="text-[8px] bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200 px-1 py-0.5 rounded font-bold uppercase"
+            >
               {statusLabel}
             </span>
           )}
@@ -455,7 +463,10 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
       className="flex flex-col h-full w-full text-foreground rounded-md border-l-[4px] shadow-xs overflow-hidden select-none cursor-pointer relative"
     >
       {statusLabel && (
-        <div className="w-full bg-amber-500 text-white dark:bg-amber-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0">
+        <div 
+          style={statusStyle}
+          className="w-full bg-orange-100 text-dark dark:bg-orange-950 dark:text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0"
+        >
           {statusLabel}
         </div>
       )}
