@@ -11,7 +11,7 @@ import { Loader2, ShieldAlert, GraduationCap, Plus } from 'lucide-react'
 import Sidebar from "@/components/layout/Sidebar"
 import CreateCourseModal from "@/components/courses/CourseModal"
 import CourseDetailsModal, { CourseDetails } from "@/components/courses/CourseDetailsModal"
-import { getPastelHex } from '@/utils/color';
+import { getPastelHex } from '@/utils/color'
 
 // Importation des composants Shadcn UI
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,8 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 type CourseBackend = {
   id: number | string
@@ -268,9 +270,13 @@ export default function Calendar() {
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full flex-col items-center justify-center gap-2 bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground animate-pulse">Chargement de votre emploi du temps...</p>
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <Card className="flex flex-col items-center justify-center p-8 border-none shadow-none bg-transparent gap-3 text-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm font-medium text-muted-foreground animate-pulse">
+            Chargement de votre emploi du temps...
+          </p>
+        </Card>
       </div>
     )
   }
@@ -278,11 +284,17 @@ export default function Calendar() {
   if (!user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background p-4">
-        <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-destructive/25 bg-destructive/5 text-destructive max-w-md">
-          <ShieldAlert className="h-10 w-10 mb-3 opacity-90" />
-          <h3 className="font-semibold text-lg">Accès refusé</h3>
-          <p className="text-sm opacity-80 mt-1">Veuillez vous connecter pour consulter vos cours planifiés.</p>
-        </div>
+        <Card className="max-w-md w-full border-destructive/30 bg-destructive/5 text-center p-2">
+          <CardHeader className="flex flex-col items-center">
+            <div className="p-3 rounded-full bg-destructive/10 text-destructive mb-2">
+              <ShieldAlert className="h-8 w-8" />
+            </div>
+            <CardTitle className="text-xl text-destructive">Accès refusé</CardTitle>
+            <CardDescription className="text-destructive/80">
+              Veuillez vous connecter pour consulter vos cours planifiés.
+            </CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     )
   }
@@ -297,43 +309,45 @@ export default function Calendar() {
         <div className="flex-1 flex flex-col p-4 lg:p-6 pt-20 lg:pt-6 gap-4 min-h-0 overflow-hidden">
           
           {isVieScolaire && (
-            <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-card rounded-2xl border border-border shadow-xs">
-              <div className="flex items-center gap-2 text-foreground font-medium">
-                <GraduationCap className="h-5 w-5 text-primary" />
-                <span>Consulter l'emploi du temps d'une classe :</span>
-              </div>
+            <Card className="shrink-0 p-4 border-border shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-foreground font-medium text-sm">
+                  <GraduationCap className="h-5 w-5 text-primary" />
+                  <span>Consulter l'emploi du temps d'une classe :</span>
+                </div>
 
-              <div className="flex items-center gap-2">
-                <Select
-                  value={selectedGradeId ? String(selectedGradeId) : undefined}
-                  onValueChange={(value) => setSelectedGradeId(Number(value))}
-                  disabled={grades.length === 0}
-                >
-                  <SelectTrigger className="w-[200px] bg-background border-border text-foreground rounded-xl">
-                    <SelectValue placeholder={grades.length === 0 ? "Aucune classe" : "Sélectionner une classe"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {grades.map((grade) => (
-                      <SelectItem key={grade.id} value={String(grade.id)}>
-                        {grade.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={selectedGradeId ? String(selectedGradeId) : undefined}
+                    onValueChange={(value) => setSelectedGradeId(Number(value))}
+                    disabled={grades.length === 0}
+                  >
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder={grades.length === 0 ? "Aucune classe" : "Sélectionner une classe"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades.map((grade) => (
+                        <SelectItem key={grade.id} value={String(grade.id)}>
+                          {grade.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                <Button
-                  type="button"
-                  onClick={openModalManually}
-                  className="inline-flex items-center gap-1.5 rounded-xl text-sm font-medium shadow-xs cursor-pointer whitespace-nowrap"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Créer</span>
-                </Button>
+                  <Button
+                    type="button"
+                    onClick={openModalManually}
+                    className="gap-1.5 whitespace-nowrap cursor-pointer"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Créer</span>
+                  </Button>
+                </div>
               </div>
-            </div>
+            </Card>
           )}
 
-          <div className="flex-1 min-h-0 p-3 md:p-5 bg-card rounded-2xl border border-border shadow-sm text-foreground custom-fullcalendar flex flex-col">
+          <Card className="flex-1 min-h-0 p-3 md:p-5 shadow-xs border-border custom-fullcalendar flex flex-col overflow-hidden">
             <FullCalendar
               ref={calendarRef}
               key={calendarView}
@@ -376,7 +390,7 @@ export default function Calendar() {
               }}
               eventContent={renderEventContent}
             />
-          </div>
+          </Card>
         </div>
       </main>
 
@@ -417,13 +431,12 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   const durationMinutes = start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 60
   const isShortEvent = durationMinutes <= 30
 
-  // Style dynamique : bordure nette aux couleurs de la matière, fond plein mais très pâle
+  // Style dynamique aux couleurs de la matière
   const dynamicStyle = subjectColor ? {
     borderLeftColor: subjectColor,
     backgroundColor: getPastelHex(subjectColor, 0.85),
   } : {}
 
-  // Style pour le bandeau de statut (fond orange pâle, bordure inférieure selon la matière)
   const statusStyle = subjectColor ? {
     borderBottom: `3px solid ${subjectColor}`,
   } : {}
@@ -444,12 +457,13 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {statusLabel && (
-            <span 
+            <Badge 
+              variant="outline"
               style={statusStyle}
-              className="text-[8px] bg-orange-100 text-orange-900 dark:bg-orange-950 dark:text-orange-200 px-1 py-0.5 rounded font-bold uppercase"
+              className="text-[8px] bg-amber-100/90 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-800 px-1 py-0 h-4 font-bold uppercase rounded-xs shrink-0"
             >
               {statusLabel}
-            </span>
+            </Badge>
           )}
           <span className="text-[9px] font-mono opacity-75">{eventInfo.timeText}</span>
         </div>
@@ -465,7 +479,7 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
       {statusLabel && (
         <div 
           style={statusStyle}
-          className="w-full bg-orange-100 text-dark dark:bg-orange-950 dark:text-white px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0"
+          className="w-full bg-amber-100/90 text-amber-950 dark:bg-amber-950/90 dark:text-amber-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0 border-b border-amber-200/50"
         >
           {statusLabel}
         </div>
