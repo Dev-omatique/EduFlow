@@ -35,7 +35,7 @@ type CourseBackend = {
   recurrentUntil?: string
   teacher?: { firstName: string; lastName: string }
   Room?: { name: string }
-  Subject?: { type: string }
+  Subject?: { type: string; color?: string }
   Grade?: { name: string }
   status?: { id: number; label: string }
 }
@@ -114,6 +114,7 @@ async function getCalendarEvents(
           roomId: course.roomId,
           recurrent: course.recurrent,
           recurrentUntil: course.recurrentUntil,
+          subjectColor: course.Subject?.color || null,
         }
       }
     })
@@ -403,16 +404,22 @@ export default function Calendar() {
 }
 
 function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
-  const { participant, room, statusLabel } = eventInfo.event.extendedProps as { 
+  const { participant, room, statusLabel, subjectColor } = eventInfo.event.extendedProps as { 
     participant?: string; 
     room: string; 
-    statusLabel?: string | null 
+    statusLabel?: string | null;
+    subjectColor?: string | null;
   }
 
   const start = eventInfo.event.start
   const end = eventInfo.event.end
   const durationMinutes = start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 60
   const isShortEvent = durationMinutes <= 30
+
+  const dynamicStyle = subjectColor ? {
+    borderLeftColor: subjectColor,
+    backgroundColor: `${subjectColor}15`,
+  } : {}
 
   const statusSuffix = statusLabel ? ` (${statusLabel})` : ''
   const tooltipTitle = `${eventInfo.event.title} - ${room}${statusSuffix}`
@@ -421,7 +428,8 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
     return (
       <div 
         title={tooltipTitle}
-        className="flex items-center justify-between h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary px-1.5 rounded-md border-l-[3px] border-primary shadow-2xs overflow-hidden text-[11px] select-none cursor-pointer gap-1"
+        style={dynamicStyle}
+        className="flex items-center justify-between h-full w-full text-foreground px-1.5 rounded-md border-l-[3px] shadow-2xs overflow-hidden text-[11px] select-none cursor-pointer gap-1"
       >
         <div className="flex items-center gap-1 truncate">
           <span className="font-semibold truncate">{eventInfo.event.title}</span>
@@ -440,8 +448,10 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   }
 
   return (
-    <div className="flex flex-col h-full w-full bg-primary-light dark:bg-primary-light/10 text-primary-hover dark:text-primary rounded-md border-l-[4px] border-primary shadow-xs overflow-hidden select-none cursor-pointer relative">
-      
+    <div 
+      style={dynamicStyle}
+      className="flex flex-col h-full w-full text-foreground rounded-md border-l-[4px] shadow-xs overflow-hidden select-none cursor-pointer relative"
+    >
       {statusLabel && (
         <div className="w-full bg-amber-500 text-white dark:bg-amber-600 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0">
           {statusLabel}
