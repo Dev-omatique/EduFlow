@@ -11,6 +11,7 @@ import { Loader2, ShieldAlert, GraduationCap, Plus } from 'lucide-react'
 import Sidebar from "@/components/layout/Sidebar"
 import CreateCourseModal from "@/components/courses/CourseModal"
 import CourseDetailsModal, { CourseDetails } from "@/components/courses/CourseDetailsModal"
+import { getPastelHex } from '@/utils/color';
 
 // Importation des composants Shadcn UI
 import { Button } from "@/components/ui/button"
@@ -416,9 +417,10 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
   const durationMinutes = start && end ? (end.getTime() - start.getTime()) / (1000 * 60) : 60
   const isShortEvent = durationMinutes <= 30
 
+  // Style dynamique : bordure nette aux couleurs de la matière, fond plein mais très pâle
   const dynamicStyle = subjectColor ? {
     borderLeftColor: subjectColor,
-    backgroundColor: `${subjectColor}15`,
+    backgroundColor: getPastelHex(subjectColor, 0.85), // 85% de blanc mélangé pour un fond pastel solide
   } : {}
 
   const statusSuffix = statusLabel ? ` (${statusLabel})` : ''
