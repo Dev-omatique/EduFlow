@@ -167,7 +167,7 @@ const getTypeAll = async (req, res, next) => {
             include: [
                 {
                     model: db.Subject,
-                    attributes: ['id', 'type']
+                    attributes: ['id', 'type', 'color']
                 },
                 {
                     model: db.CourseStatus,
