@@ -2,6 +2,7 @@
 
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
+import { SidebarProvider } from "@/context/SidebarContext";
 
 export default function RootLayout({
   children,
@@ -12,9 +13,11 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body>
         <AuthProvider>
-          <main className="min-h-screen w-full bg-background">
-            {children}
-          </main>
+          <SidebarProvider>
+            <main className="min-h-screen w-full bg-background">
+              {children}
+            </main>
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>

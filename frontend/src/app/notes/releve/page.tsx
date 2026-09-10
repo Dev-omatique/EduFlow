@@ -118,6 +118,7 @@ function useNotes(
       return;
     }
 
+    const currentUser = user;
     let cancelled = false;
 
     async function loadNotes() {
@@ -125,8 +126,8 @@ function useNotes(
         setLoading(true);
         setError(null);
 
-        const roleName = user.Role.role.toLowerCase();
-        const data = await getNotes(roleName, user.id);
+        const roleName = currentUser.Role.role.toLowerCase();
+        const data = await getNotes(roleName, currentUser.id);
 
         if (!cancelled) {
           setNotes(data);

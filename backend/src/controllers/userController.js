@@ -86,15 +86,12 @@ const remove = async (req, res, next) => {
     }
 };
 
-/**
- * Récupère les examens filtrés par type (ex: rôle) et par date avec pagination
- */
+
 const getTypeAll = async (req, res, next) => {
     try {
         const { type, id } = req.params;
         const { startDate, endDate, page, limit } = req.query;
 
-        // Mappe le paramètre d'URL vers la colonne correspondante en base de données
         const typeMapping = {
             role: "roleId"
         };
@@ -104,10 +101,8 @@ const getTypeAll = async (req, res, next) => {
             return res.status(400).json({ message: "Type invalide" });
         }
 
-        // --- Construction dynamique des filtres ---
         const where = { [idKey]: Number(id) };
 
-        // --- Configuration de la requête globale ---
         const pageNum = Number(page) || 1;
         const limitNum = Number(limit) || 50;
         
@@ -149,6 +144,18 @@ const getMe = async (req, res, next) => {
                 {
                     model: Grade,
                     attributes: ["id", "name"]
+                },
+                {
+                    model: db.PrincipalTeacher,
+                    as: "PrincipalTeacher",
+                    attributes: ["id", "gradeId"],
+                    include: [
+                        {
+                            model: Grade,
+                            as: "Grade",
+                            attributes: ["id", "name"]
+                        }
+                    ]
                 }
             ]
         });

@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refetchUser } = useAuth();
 
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
@@ -14,7 +16,7 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     setError("");
 
@@ -47,32 +49,12 @@ export default function LoginPage() {
         throw new Error(loginData.message || "Erreur de connexion");
       }
 
-      const profileResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/me`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      await refetchUser();
+      router.push("/");
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Une erreur est survenue"
       );
-
-      const profileData = await profileResponse.json();
-
-      if (!profileResponse.ok) {
-        throw new Error(profileData.message || "Impossible de récupérer le profil");
-      }
-
-      const roleName = profileData.Role?.role?.toLowerCase();
-
-      if (!roleName) {
-        throw new Error("Rôle utilisateur introuvable");
-      }
-
-      router.push(`/${roleName}`);
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue");
     } finally {
       setLoading(false);
     }
@@ -187,7 +169,7 @@ export default function LoginPage() {
           </form>
 
           <p className="text-xs text-gray-400 mt-8 text-center">
-            Besoin d'aide ? Contactez l'administration de votre établissement.
+            Besoin d&apos;aide ? Contactez l&apos;administration de votre établissement.
           </p>
         </div>
       </div>
