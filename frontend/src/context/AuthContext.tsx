@@ -3,10 +3,13 @@
 import {
   createContext,
   useContext,
+  useCallback,
   useEffect,
+  useMemo,
+  useRef,
   useState,
-  ReactNode,
 } from "react";
+import type { ReactNode } from "react";
 
 interface Role {
   id: number;
@@ -18,6 +21,12 @@ interface Grade {
   name: string;
 }
 
+interface PrincipalTeacher {
+  id: number;
+  gradeId: number;
+  Grade?: Grade;
+}
+
 interface User {
   id: number;
   username: string;
@@ -26,6 +35,7 @@ interface User {
   lastName: string;
   Role: Role;
   Grade?: Grade;
+  PrincipalTeacher?: PrincipalTeacher;
 }
 
 interface AuthContextValue {
@@ -43,32 +53,49 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({
+  children,
+}: Readonly<{ children: ReactNode }>) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const requestId = useRef(0);
 
-  async function fetchUser() {
+  const fetchUser = useCallback(async () => {
+    const currentRequestId = ++requestId.current;
+    setIsLoading(true);
+
     try {
       const res = await fetch(`${API_URL}/api/users/me`, {
         credentials: "include",
       });
 
       if (!res.ok) {
-        setUser(null);
+        if (currentRequestId === requestId.current) {
+          setUser(null);
+        }
+
         return;
       }
 
       const data: User = await res.json();
-      setUser(data);
+
+      if (currentRequestId === requestId.current) {
+        setUser(data);
+      }
     } catch (err) {
       console.error("Erreur lors de la récupération de l'utilisateur:", err);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
-  async function logout() {
+      if (currentRequestId === requestId.current) {
+        setUser(null);
+      }
+    } finally {
+      if (currentRequestId === requestId.current) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
@@ -77,20 +104,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setUser(null);
     }
-  }
-
-  useEffect(() => {
-    fetchUser();
   }, []);
 
-  const value: AuthContextValue = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    isRole: (role) => user?.Role?.role === role,
-    refetchUser: fetchUser,
-    logout,
-  };
+  useEffect(() => {
+    void fetchUser();
+  }, [fetchUser]);
+
+  const isRole = useCallback(
+    (role: string) => user?.Role?.role === role,
+    [user]
+  );
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      isLoading,
+      isAuthenticated: !!user,
+      isRole,
+      refetchUser: fetchUser,
+      logout,
+    }),
+    [fetchUser, isLoading, isRole, logout, user]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

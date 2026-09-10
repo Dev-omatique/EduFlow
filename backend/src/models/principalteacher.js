@@ -9,11 +9,19 @@ export default (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      PrincipalTeacher.belongsTo(models.Grade, {
+        foreignKey: 'gradeId',
+        as: 'Grade',
+      });
+
+      PrincipalTeacher.belongsTo(models.User, {
+        foreignKey: 'teacherId',
+        as: 'Teacher',
+      });
     }
   }
   PrincipalTeacher.init({
-    gradesId: DataTypes.INTEGER,
+    gradeId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER
   }, {
     sequelize,

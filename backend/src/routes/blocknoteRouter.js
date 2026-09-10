@@ -12,6 +12,5 @@ blocknoteRouter.put('/:id', checkPermission('MANAGE_DOCUMENTS'), blocknoteContro
 
 blocknoteRouter.delete('/:id', checkPermission('MANAGE_DOCUMENTS'), blocknoteController.delete);
 
-// ---------------------------------------------------- //
 
 export default blocknoteRouter;

@@ -1,7 +1,7 @@
 import { Op } from 'sequelize';
 import db from '../models/index.js'
 
-const { Exam, Subject, Grade, User, Roles } = db;
+const { Exam, Subject, Grade, User } = db;
 
 const getOne = async (req, res, next) => {
   try {
@@ -66,11 +66,11 @@ const getStudentsByExam = async (req, res, next) => {
       where: { gradeId: exam.gradeId },
       include: [
         {
-          model: Roles,
-          attributes: ['id', 'role'],
+          association: 'Role',
+          attributes: [],
           where: { role: 'STUDENT' },
-          required: true
-        }
+          required: true,
+        },
       ],
       attributes: ['id', 'firstName', 'lastName', 'gradeId'],
       order: [['lastName', 'ASC'], ['firstName', 'ASC']],

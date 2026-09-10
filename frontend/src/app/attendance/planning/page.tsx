@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Loader2, CalendarDays, ClipboardCheck, MapPin, Filter, AlertCircle, BookOpen, User } from "lucide-react";
+import {
+  Loader2,
+  CalendarDays,
+  ClipboardCheck,
+  ClipboardX,
+  MapPin,
+  Filter,
+  AlertCircle,
+  BookOpen,
+  User,
+} from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useAuth } from "@/context/AuthContext";
 
@@ -21,7 +31,7 @@ import {
 } from "@/components/ui/select";
 
 type CourseItem = {
-  id: number;
+  id: number | string;
   startTime: string;
   endTime: string;
   Room?: { id: number; name: string };
@@ -30,10 +40,37 @@ type CourseItem = {
   teacher?: { id: number; firstName: string; lastName: string };
 };
 
+type AttendanceRecord = {
+  id: number;
+  courseId: number;
+  createdAt: string;
+};
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
+}
+
+// Les cours récurrents renvoient un id du type "5_2026-07-23" (backend).
+// Cette fonction extrait l'id numérique de base pour construire le lien de détail
+// et pour interroger l'API d'appel (qui attend un id numérique).
+function baseCourseId(id: number | string) {
+  return String(id).split("_")[0];
+}
+
+function isSameDay(dateA: string, dateB: string) {
+  const a = new Date(dateA);
+  const b = new Date(dateB);
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function isCourseFinished(course: CourseItem) {
+  return new Date(course.endTime).getTime() <= Date.now();
 }
 
 async function fetchAllCourses(startDate: string, endDate: string) {
@@ -46,6 +83,17 @@ async function fetchAllCourses(startDate: string, endDate: string) {
 
   if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
   return response.json() as Promise<CourseItem[]>;
+}
+
+async function fetchCourseAttendances(courseId: string) {
+  const response = await fetch(`${API_BASE_URL}/api/attendances/cours/${courseId}`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+  return response.json() as Promise<AttendanceRecord[]>;
 }
 
 function formatTime(dateString: string) {
@@ -73,6 +121,11 @@ export default function AttendancePlanningPage() {
   const [endDate, setEndDate] = useState(todayISO());
   const [selectedTeacher, setSelectedTeacher] = useState<string>("all");
   const [selectedGrade, setSelectedGrade] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+
+  // Map id d'occurrence (course.id, ex: "5" ou "5_2026-07-23") -> appel fait ou non
+  const [attendanceStatus, setAttendanceStatus] = useState<Record<string, boolean>>({});
+  const [loadingStatus, setLoadingStatus] = useState(false);
 
   const isVieScolaire = user?.Role.role === "VIE_SCOLAIRE";
 
@@ -92,6 +145,44 @@ export default function AttendancePlanningPage() {
       })
       .finally(() => setLoading(false));
   }, [authLoading, user, isVieScolaire, startDate, endDate]);
+
+  // Une fois les cours chargés, on vérifie pour chacun s'il y a un appel
+  // enregistré ce jour-là (un seul fetch par id de base pour éviter les
+  // doublons de requêtes sur les cours récurrents).
+  useEffect(() => {
+    if (courses.length === 0) {
+      setAttendanceStatus({});
+      return;
+    }
+
+    const uniqueBaseIds = Array.from(new Set(courses.map((c) => baseCourseId(c.id))));
+
+    setLoadingStatus(true);
+    Promise.all(
+      uniqueBaseIds.map(async (baseId) => {
+        try {
+          const records = await fetchCourseAttendances(baseId);
+          return { baseId, records };
+        } catch {
+          return { baseId, records: [] as AttendanceRecord[] };
+        }
+      })
+    )
+      .then((results) => {
+        const recordsByBaseId = new Map(results.map((r) => [r.baseId, r.records]));
+
+        const status: Record<string, boolean> = {};
+        courses.forEach((course) => {
+          const records = recordsByBaseId.get(baseCourseId(course.id)) || [];
+          status[String(course.id)] = records.some((r) =>
+            isSameDay(r.createdAt, course.startTime)
+          );
+        });
+
+        setAttendanceStatus(status);
+      })
+      .finally(() => setLoadingStatus(false));
+  }, [courses]);
 
   const availableTeachers = useMemo(() => {
     const map = new Map<number, string>();
@@ -120,16 +211,25 @@ export default function AttendancePlanningPage() {
           selectedTeacher === "all" || course.teacher?.id === Number(selectedTeacher);
         const matchesGrade =
           selectedGrade === "all" || course.Grade?.id === Number(selectedGrade);
-        return matchesTeacher && matchesGrade;
+
+        const hasAttendance = attendanceStatus[String(course.id)] ?? false;
+        const matchesStatus =
+          selectedStatus === "all" ||
+          (selectedStatus === "done" && hasAttendance) ||
+          (selectedStatus === "pending" && !hasAttendance);
+
+        return matchesTeacher && matchesGrade && matchesStatus;
       })
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
-  }, [courses, selectedTeacher, selectedGrade]);
+  }, [courses, selectedTeacher, selectedGrade, selectedStatus, attendanceStatus]);
 
-  const hasActiveFilters = selectedTeacher !== "all" || selectedGrade !== "all";
+  const hasActiveFilters =
+    selectedTeacher !== "all" || selectedGrade !== "all" || selectedStatus !== "all";
 
   const resetFilters = () => {
     setSelectedTeacher("all");
     setSelectedGrade("all");
+    setSelectedStatus("all");
   };
 
   if (authLoading || loading) {
@@ -170,7 +270,7 @@ export default function AttendancePlanningPage() {
               <div>
                 <CardTitle className="text-2xl font-bold">Planning des cours</CardTitle>
                 <CardDescription className="mt-1">
-                  Filtrez par professeur, par classe ou par période.
+                  Filtrez par professeur, par classe, par statut d&apos;appel ou par période.
                 </CardDescription>
               </div>
               <div>
@@ -233,6 +333,17 @@ export default function AttendancePlanningPage() {
                   </SelectContent>
                 </Select>
 
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="w-[170px] h-9 bg-background">
+                    <SelectValue placeholder="Statut de l'appel" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="done">Appel fait</SelectItem>
+                    <SelectItem value="pending">Appel non fait</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 {hasActiveFilters && (
                   <Button
                     variant="ghost"
@@ -259,50 +370,77 @@ export default function AttendancePlanningPage() {
                 </div>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {filteredCourses.map((course) => (
-                    <Link
-                      key={course.id}
-                      href={`/attendance/planning/${course.id}`}
-                      className="group block"
-                    >
-                      <Card className="h-full transition-all duration-200 hover:border-primary hover:shadow-md">
-                        <CardHeader className="space-y-3 pb-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div>
-                              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                {course.Subject?.type || "Matière"}
-                              </p>
-                              <CardTitle className="mt-1 text-lg font-bold group-hover:text-primary transition-colors">
-                                {course.Grade?.name || "Classe"}
-                              </CardTitle>
-                              <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1.5">
-                                <User className="h-3.5 w-3.5" />
-                                {course.teacher
-                                  ? `${course.teacher.firstName} ${course.teacher.lastName}`
-                                  : "Professeur non renseigné"}
-                              </p>
-                            </div>
-                            <Badge variant="default" className="shrink-0 font-medium">
-                              {formatTime(course.startTime)} - {formatTime(course.endTime)}
-                            </Badge>
-                          </div>
-                        </CardHeader>
+                  {filteredCourses.map((course) => {
+                    const finished = isCourseFinished(course);
+                    const hasAttendance = attendanceStatus[String(course.id)] ?? false;
 
-                        <CardContent>
-                          <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-xs text-muted-foreground">
-                            <Badge variant="outline" className="gap-1.5 font-normal">
-                              <CalendarDays className="h-3.5 w-3.5" />
-                              {formatDate(course.startTime)}
-                            </Badge>
-                            <Badge variant="outline" className="gap-1.5 font-normal">
-                              <MapPin className="h-3.5 w-3.5" />
-                              {course.Room?.name || "Salle non spécifiée"}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
+                    return (
+                      <Link
+                        key={course.id}
+                        href={`/attendance/planning/${baseCourseId(course.id)}`}
+                        className="group block"
+                      >
+                        <Card className="h-full transition-all duration-200 hover:border-primary hover:shadow-md">
+                          <CardHeader className="space-y-3 pb-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                  {course.Subject?.type || "Matière"}
+                                </p>
+                                <CardTitle className="mt-1 text-lg font-bold group-hover:text-primary transition-colors">
+                                  {course.Grade?.name || "Classe"}
+                                </CardTitle>
+                                <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1.5">
+                                  <User className="h-3.5 w-3.5" />
+                                  {course.teacher
+                                    ? `${course.teacher.firstName} ${course.teacher.lastName}`
+                                    : "Professeur non renseigné"}
+                                </p>
+                              </div>
+                              <Badge variant="default" className="shrink-0 font-medium">
+                                {formatTime(course.startTime)} - {formatTime(course.endTime)}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+
+                          <CardContent>
+                            <div className="flex flex-wrap items-center gap-2 pt-2 border-t text-xs text-muted-foreground">
+                              <Badge variant="outline" className="gap-1.5 font-normal">
+                                <CalendarDays className="h-3.5 w-3.5" />
+                                {formatDate(course.startTime)}
+                              </Badge>
+                              <Badge variant="outline" className="gap-1.5 font-normal">
+                                <MapPin className="h-3.5 w-3.5" />
+                                {course.Room?.name || "Salle non spécifiée"}
+                              </Badge>
+
+                              {loadingStatus ? (
+                                <Badge variant="outline" className="gap-1.5 font-normal">
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  Vérification...
+                                </Badge>
+                              ) : hasAttendance ? (
+                                <Badge className="gap-1.5 font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                                  <ClipboardCheck className="h-3.5 w-3.5" />
+                                  Appel fait
+                                </Badge>
+                              ) : finished ? (
+                                <Badge variant="destructive" className="gap-1.5 font-medium">
+                                  <ClipboardX className="h-3.5 w-3.5" />
+                                  Appel non fait
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="gap-1.5 font-normal text-muted-foreground">
+                                  <ClipboardX className="h-3.5 w-3.5" />
+                                  À venir
+                                </Badge>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    );
+                  })}
                 </div>
               )}
             </CardContent>
