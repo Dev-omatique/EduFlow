@@ -4,9 +4,9 @@ import { checkPermission } from '../middlewares/checkPermission.js';
 
 var subjectRouter = Router();
 
-subjectRouter.get('/', checkPermission('MANAGE_SUBJECTS'), subjectController.getAll);
+subjectRouter.get('/', checkPermission('VIEW_SUBJECTS'), subjectController.getAll);
 
-subjectRouter.get('/:id', checkPermission('MANAGE_SUBJECTS'), subjectController.getOne);
+subjectRouter.get('/:id', checkPermission('VIEW_SUBJECTS'), subjectController.getOne);
 
 subjectRouter.post('/', checkPermission('MANAGE_SUBJECTS'), subjectController.create);
 

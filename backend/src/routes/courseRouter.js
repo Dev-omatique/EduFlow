@@ -11,6 +11,7 @@ courseRouter.put('/:id', checkPermission('MANAGE_SCHEDULE'), courseController.up
 courseRouter.delete('/:id', checkPermission('MANAGE_SCHEDULE'), courseController.delete);
 
 // ---------------------------------------------------- //
+courseRouter.get('/all/all', checkPermission('VIEW_ALL_SCHEDULE'), courseController.getTypeAll);
 
 courseRouter.get('/:id/students', checkPermission('VIEW_SCHEDULE'), courseController.getStudents);
 
