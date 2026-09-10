@@ -1,10 +1,19 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, ArrowLeft, User, BookOpen, Pencil, CheckCircle } from "lucide-react";
+import { Loader2, ArrowLeft, User, BookOpen, CheckCircle, TrendingUp, AlertCircle } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useAuth } from "@/context/AuthContext";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 type ExamDetail = {
   id: number;
@@ -17,28 +26,44 @@ type ExamDetail = {
   Grade?: { id: number; name: string };
 };
 
-type Student = {
-  id: number;
-  firstName: string;
-  lastName: string;
-};
+type Student = { id: number; firstName: string; lastName: string };
 
-type NotePayload = {
-  studentId: number;
-  examId: number;
-  grade: string;
-};
+type NotePayload = { studentId: number; examId: number; grade: string };
 
-type ExistingNote = {
-  id: number;
-  grade: string;
-  studentId: number;
-  examId: number;
-};
+type ExistingNote = { id: number; grade: string; studentId: number; examId: number };
+
+type SubmitState = { status: "idle" | "saving" | "success" | "error"; message?: string };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
+const SIDEBAR_OFFSET = "lg:pl-[280px]"; // doit rester alignée avec la largeur définie dans Sidebar
 
-async function fetchExamNotes(examId: string) {
+// ---------------------------------------------------------------------------
+// Appels API
+// ---------------------------------------------------------------------------
+
+async function fetchExam(examId: string): Promise<ExamDetail> {
+  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+  return response.json();
+}
+
+async function fetchStudents(examId: string): Promise<Student[]> {
+  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}/students`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+  return response.json();
+}
+
+async function fetchExamNotes(examId: string): Promise<ExistingNote[]> {
   const response = await fetch(`${API_BASE_URL}/api/notes/exam/${examId}`, {
     method: "GET",
     credentials: "include",
@@ -46,12 +71,12 @@ async function fetchExamNotes(examId: string) {
   });
 
   if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-  return response.json() as Promise<ExistingNote[]>;
+  return response.json();
 }
 
-async function updateNote(noteId: number, note: NotePayload) {
-  const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, {
-    method: "PUT",
+async function saveNote(note: NotePayload) {
+  const response = await fetch(`${API_BASE_URL}/api/notes`, {
+    method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(note),
@@ -65,31 +90,9 @@ async function updateNote(noteId: number, note: NotePayload) {
   return response.json();
 }
 
-async function fetchExam(examId: string) {
-  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}`, {
-    method: "GET",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-  return response.json() as Promise<ExamDetail>;
-}
-
-async function fetchStudents(examId: string) {
-  const response = await fetch(`${API_BASE_URL}/api/exams/${examId}/students`, {
-    method: "GET",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-  });
-
-  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-  return response.json() as Promise<Student[]>;
-}
-
-async function saveNote(note: NotePayload) {
-  const response = await fetch(`${API_BASE_URL}/api/notes`, {
-    method: "POST",
+async function updateNote(noteId: number, note: NotePayload) {
+  const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, {
+    method: "PUT",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(note),
@@ -112,84 +115,323 @@ function formatDate(date?: string | null) {
   });
 }
 
-export default function ExamDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: examId } = use(params);
-  const { user, isLoading: authLoading } = useAuth();
-  const [exam, setExam] = useState<ExamDetail | null>(null);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [grades, setGrades] = useState<Record<number, string>>({});
-  const [loading, setLoading] = useState(true);
-  const [submitState, setSubmitState] = useState<{ status: 'idle' | 'saving' | 'success' | 'error'; message?: string }>({ status: 'idle' });
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const [existingNotesByStudent, setExistingNotesByStudent] = useState<Record<number, ExistingNote>>({});
+// ---------------------------------------------------------------------------
+// Hooks de données
+// ---------------------------------------------------------------------------
 
-  const [studentsLoading, setStudentsLoading] = useState(true);
-  const [studentsError, setStudentsError] = useState<string | null>(null);
+function useExam(examId: string, enabled: boolean) {
+  const [exam, setExam] = useState<ExamDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
+    if (!enabled) {
       setLoading(false);
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const examData = await fetchExam(examId);
-        setExam(examData);
-      } catch (err) {
-        console.error("Erreur chargement exam:", err);
-        setError("Impossible de charger les informations de l'examen.");
-      } finally {
-        setLoading(false);
-      }
+    let cancelled = false;
+    setLoading(true);
+
+    fetchExam(examId)
+      .then((data) => {
+        if (!cancelled) setExam(data);
+      })
+      .catch((err) => {
+        console.error("Erreur chargement examen :", err);
+        if (!cancelled) setError("Impossible de charger les informations de l'examen.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
     };
+  }, [examId, enabled]);
 
-    fetchData();
-  }, [authLoading, user, examId]);
+  return { exam, loading, error };
+}
 
-  const canEdit = useMemo(() => user?.Role.role === "TEACHER", [user]);
+function useExamRoster(examId: string, enabled: boolean) {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [notesByStudent, setNotesByStudent] = useState<Record<number, ExistingNote>>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
-    if (authLoading) return;
-    if (!user || !canEdit || !exam) {
-      setStudentsLoading(false);
+    if (!enabled) {
+      setLoading(false);
       return;
     }
 
-    const fetchStudentsData = async () => {
-      setStudentsError(null);
-      setStudentsLoading(true);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
 
-      try {
-        const [studentsData, notesData] = await Promise.all([
-          fetchStudents(examId),
-          fetchExamNotes(examId),
-        ]);
+    Promise.all([fetchStudents(examId), fetchExamNotes(examId)])
+      .then(([studentsData, notesData]) => {
+        if (cancelled) return;
 
         setStudents(studentsData);
 
         const notesMap: Record<number, ExistingNote> = {};
-        const initialGrades: Record<number, string> = {};
-
         notesData.forEach((note) => {
           notesMap[note.studentId] = note;
-          initialGrades[note.studentId] = note.grade;
         });
+        setNotesByStudent(notesMap);
+      })
+      .catch((err) => {
+        console.error("Erreur chargement élèves/notes :", err);
+        if (!cancelled) setError("Impossible de charger la liste des élèves ou des notes.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
 
-        setExistingNotesByStudent(notesMap);
-        setGrades(initialGrades);
-      } catch (err: any) {
-        console.error("Erreur chargement étudiants ou notes:", err);
-        setStudentsError("Impossible de charger la liste des élèves ou des notes.");
-      } finally {
-        setStudentsLoading(false);
-      }
+    return () => {
+      cancelled = true;
     };
+  }, [examId, enabled, reloadToken]);
 
-    fetchStudentsData();
-  }, [authLoading, canEdit, exam, examId, user]);
+  const reload = () => setReloadToken((t) => t + 1);
+
+  return { students, notesByStudent, loading, error, reload };
+}
+
+// ---------------------------------------------------------------------------
+// Mise en page commune
+// ---------------------------------------------------------------------------
+
+function PageShell({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <Sidebar />
+      <main className={`min-h-screen bg-background ${SIDEBAR_OFFSET}`}>{children}</main>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Sections
+// ---------------------------------------------------------------------------
+
+function ExamSummaryCard({
+  exam,
+  classAverage,
+  studentCount,
+  gradedCount,
+  onBack,
+}: {
+  exam: ExamDetail;
+  classAverage: number | null;
+  studentCount: number;
+  gradedCount: number;
+  onBack: () => void;
+}) {
+  return (
+    <Card>
+      <CardContent className="pt-6">
+        <Button variant="ghost" size="sm" onClick={onBack} className="mb-6 gap-2 -ml-2">
+          <ArrowLeft className="h-4 w-4" />
+          Retour aux examens
+        </Button>
+
+        <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {exam.Subject?.type || "Matière"}
+            </p>
+            <h1 className="mt-1 text-2xl font-bold text-foreground">{exam.title}</h1>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              {exam.description || "Aucune description fournie."}
+            </p>
+
+            <div className="mt-6 grid grid-cols-3 divide-x divide-border border-t pt-4">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">Date du contrôle</p>
+                <p className="mt-1 text-base font-semibold text-foreground">{formatDate(exam.dueDate)}</p>
+              </div>
+              <div className="pl-4">
+                <p className="text-xs font-medium text-muted-foreground">Coefficient</p>
+                <p className="mt-1 text-base font-semibold text-foreground">{exam.coefficient}</p>
+              </div>
+              <div className="pl-4">
+                <p className="text-xs font-medium text-muted-foreground">Moyenne de classe</p>
+                <p className="mt-1 flex items-center gap-1.5 text-base font-semibold text-foreground">
+                  <TrendingUp className="h-4 w-4 text-primary" />
+                  {classAverage !== null ? `${classAverage.toFixed(2)} / ${exam.maxNotes}` : "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border bg-muted/40 p-5">
+            <p className="text-xs font-medium text-muted-foreground">Classe</p>
+            <p className="mt-1 text-base font-semibold text-foreground">{exam.Grade?.name || "Non renseignée"}</p>
+
+            <div className="mt-5 space-y-2.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                {studentCount} étudiant{studentCount > 1 ? "s" : ""}
+              </div>
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                {gradedCount} note{gradedCount > 1 ? "s" : ""} saisie{gradedCount > 1 ? "s" : ""}
+                {studentCount > 0 ? ` sur ${studentCount}` : ""}
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StudentsGradingCard({
+  students,
+  grades,
+  onGradeChange,
+  maxNotes,
+  canEdit,
+  onSave,
+  isSaving,
+  loading,
+  error,
+  submitState,
+}: {
+  students: Student[];
+  grades: Record<number, string>;
+  onGradeChange: (studentId: number, value: string) => void;
+  maxNotes: string;
+  canEdit: boolean;
+  onSave: () => void;
+  isSaving: boolean;
+  loading: boolean;
+  error: string | null;
+  submitState: SubmitState;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between space-y-0">
+        <div>
+          <CardTitle className="text-xl font-bold">Liste des élèves</CardTitle>
+          <CardDescription className="mt-1">
+            {canEdit ? "Saisissez une note pour chaque élève." : "Affichage des élèves pour ce contrôle."}
+          </CardDescription>
+        </div>
+
+        {canEdit && (
+          <Button onClick={onSave} disabled={isSaving} className="gap-2">
+            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+            Enregistrer les notes
+          </Button>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border">
+            <table className="w-full text-left">
+              <thead className="bg-muted/40">
+                <tr>
+                  <th className="px-4 py-3 text-sm font-semibold text-muted-foreground">Élève</th>
+                  <th className="px-4 py-3 text-sm font-semibold text-muted-foreground">Note</th>
+                  <th className="px-4 py-3 text-sm font-semibold text-muted-foreground">Maximum</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((student) => (
+                  <tr key={student.id} className="border-t">
+                    <td className="px-4 py-3 text-sm text-foreground">
+                      {student.firstName} {student.lastName}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        max={maxNotes}
+                        value={grades[student.id] ?? ""}
+                        disabled={!canEdit}
+                        onChange={(e) => onGradeChange(student.id, e.target.value)}
+                        placeholder="0"
+                        className="max-w-[120px]"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{maxNotes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {submitState.status === "success" && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{submitState.message}</AlertDescription>
+          </Alert>
+        )}
+
+        {submitState.status === "error" && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{submitState.message}</AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page
+// ---------------------------------------------------------------------------
+
+export default function ExamDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: examId } = use(params);
+  const { user, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+
+  const canEdit = user?.Role.role === "TEACHER";
+
+  const { exam, loading: examLoading, error: examError } = useExam(examId, !authLoading && Boolean(user));
+  const roster = useExamRoster(examId, canEdit && Boolean(exam));
+
+  const [grades, setGrades] = useState<Record<number, string>>({});
+  const [submitState, setSubmitState] = useState<SubmitState>({ status: "idle" });
+
+  // Resynchronise le formulaire à chaque (re)chargement des notes existantes.
+  useEffect(() => {
+    const initial: Record<number, string> = {};
+    Object.entries(roster.notesByStudent).forEach(([studentId, note]) => {
+      initial[Number(studentId)] = note.grade;
+    });
+    setGrades(initial);
+  }, [roster.notesByStudent]);
+
+  const classAverage = (() => {
+    const numericGrades = Object.values(roster.notesByStudent)
+      .map((note) => Number.parseFloat(note.grade))
+      .filter((value) => !Number.isNaN(value));
+
+    if (numericGrades.length === 0) return null;
+    return numericGrades.reduce((total, value) => total + value, 0) / numericGrades.length;
+  })();
+
+  const gradedCount = Object.keys(roster.notesByStudent).length;
 
   const handleGradeChange = (studentId: number, value: string) => {
     setGrades((current) => ({ ...current, [studentId]: value }));
@@ -198,223 +440,103 @@ export default function ExamDetailPage({ params }: { params: Promise<{ id: strin
   const handleSave = async () => {
     if (!exam) return;
 
-    setSubmitState({ status: 'saving' });
-    setError(null);
+    const payloads = roster.students
+      .filter((student) => grades[student.id] !== undefined && grades[student.id] !== "")
+      .map((student) => ({
+        note: { studentId: student.id, examId: exam.id, grade: grades[student.id] } as NotePayload,
+        noteId: roster.notesByStudent[student.id]?.id,
+      }));
+
+    if (payloads.length === 0) {
+      setSubmitState({ status: "error", message: "Aucune note à enregistrer." });
+      return;
+    }
+
+    setSubmitState({ status: "saving" });
 
     try {
-      const payloads = students
-        .filter((student) => grades[student.id] !== undefined && grades[student.id] !== "")
-        .map((student) => {
-          const note: NotePayload = {
-            studentId: student.id,
-            examId: exam.id,
-            grade: grades[student.id],
-          };
-          return {
-            note,
-            noteId: existingNotesByStudent[student.id]?.id,
-          };
-        });
-
-      if (payloads.length === 0) {
-        setSubmitState({ status: 'error', message: 'Aucune note à enregistrer.' });
-        return;
-      }
-
-      await Promise.all(
-        payloads.map(({ note, noteId }) =>
-          noteId ? updateNote(noteId, note) : saveNote(note)
-        )
-      );
-
-      const savedNotes = await fetchExamNotes(examId);
-      const notesMap: Record<number, ExistingNote> = {};
-      const refreshedGrades: Record<number, string> = {};
-
-      savedNotes.forEach((note) => {
-        notesMap[note.studentId] = note;
-        refreshedGrades[note.studentId] = note.grade;
-      });
-
-      setExistingNotesByStudent(notesMap);
-      setGrades(refreshedGrades);
-      setSubmitState({ status: 'success', message: 'Notes enregistrées avec succès.' });
+      await Promise.all(payloads.map(({ note, noteId }) => (noteId ? updateNote(noteId, note) : saveNote(note))));
+      roster.reload();
+      setSubmitState({ status: "success", message: "Notes enregistrées avec succès." });
     } catch (err: any) {
-      setSubmitState({ status: 'error', message: err.message || 'Échec lors de l’enregistrement.' });
+      setSubmitState({ status: "error", message: err.message || "Échec lors de l'enregistrement." });
     }
   };
 
-  if (authLoading || loading) {
+  if (authLoading || examLoading) {
     return (
-      <>
-        <Sidebar />
-        <div className="flex h-[60vh] items-center justify-center lg:pl-[270px]">
+      <PageShell>
+        <div className="flex h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </>
+      </PageShell>
     );
   }
 
   if (!user) {
     return (
-      <>
-        <Sidebar />
-        <div className="flex flex-col items-center justify-center text-center p-8 rounded-2xl border border-destructive/20 bg-destructive/5 text-destructive max-w-md mx-auto my-12 lg:ml-[270px]">
-          <p className="font-semibold text-lg">Connexion requise</p>
-          <p className="mt-2 text-sm opacity-80">Veuillez vous connecter pour voir les détails de l'examen.</p>
+      <PageShell>
+        <div className="max-w-md mx-auto my-12 p-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Connexion requise</AlertTitle>
+            <AlertDescription>Veuillez vous connecter pour voir les détails de l'examen.</AlertDescription>
+          </Alert>
         </div>
-      </>
+      </PageShell>
     );
   }
 
-  if (error) {
+  if (examError) {
     return (
-      <>
-        <Sidebar />
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-700 lg:ml-[270px]">
-          {error}
+      <PageShell>
+        <div className="max-w-md mx-auto my-12 p-8">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Erreur</AlertTitle>
+            <AlertDescription>{examError}</AlertDescription>
+          </Alert>
         </div>
-      </>
+      </PageShell>
     );
   }
 
   if (!exam) {
     return (
-      <>
-        <Sidebar />
-        <div className="rounded-2xl border border-border bg-white p-6 text-slate-700 lg:ml-[270px]">
-          Examen non trouvé.
+      <PageShell>
+        <div className="max-w-md mx-auto my-12 p-8">
+          <Alert>
+            <AlertTitle>Examen non trouvé</AlertTitle>
+          </Alert>
         </div>
-      </>
+      </PageShell>
     );
   }
 
   return (
-    <>
-      <Sidebar />
-      <main className="min-h-screen bg-background p-4 lg:pl-[270px]">
-        <div className="mx-auto w-full max-w-7xl space-y-6 py-6">
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-slate-50 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-100"
-            >
-              <ArrowLeft className="h-4 w-4" /> Retour aux examens
-            </button>
+    <PageShell>
+      <div className="mx-auto w-full max-w-7xl space-y-6 p-4 py-6">
+        <ExamSummaryCard
+          exam={exam}
+          classAverage={classAverage}
+          studentCount={roster.students.length}
+          gradedCount={gradedCount}
+          onBack={() => router.back()}
+        />
 
-            <div className="grid gap-6 lg:grid-cols-[2fr_1fr]">
-              <div>
-                <div className="mb-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                    {exam.Subject?.type || "Matière"}
-                  </p>
-                  <h1 className="mt-2 text-3xl font-bold text-slate-900">{exam.title}</h1>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{exam.description || "Aucune description fournie."}</p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Date du contrôle</p>
-                    <p className="mt-2 text-lg font-semibold text-slate-900">{formatDate(exam.dueDate)}</p>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs uppercase tracking-wide text-muted-foreground">Coefficient</p>
-                    <p className="mt-2 text-lg font-semibold text-slate-900">{exam.coefficient}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-border bg-slate-50 p-5">
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Classe</p>
-                <p className="mt-2 text-lg font-semibold text-slate-900">{exam.Grade?.name || "Non renseignée"}</p>
-                <div className="mt-6 space-y-3 text-sm text-slate-600">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-slate-400" />
-                    <p>{students.length} étudiant{students.length > 1 ? "s" : ""}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-4 w-4 text-slate-400" />
-                    <p>Notes saisies manuellement</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-white p-5 shadow-sm">
-            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-slate-900">Liste des élèves</h2>
-                <p className="mt-2 text-sm text-slate-600">
-                  {canEdit ? "Saisissez une note pour chaque élève." : "Affichage des élèves pour ce contrôle."}
-                </p>
-              </div>
-
-              {canEdit && (
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
-                >
-                  <CheckCircle className="h-4 w-4" /> Enregistrer les notes
-                </button>
-              )}
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="px-4 py-3 text-sm font-semibold text-slate-600">Élève</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-slate-600">Note</th>
-                    <th className="px-4 py-3 text-sm font-semibold text-slate-600">Maximum</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {students.map((student) => {
-                    const gradeValue = grades[student.id] ?? "";
-                    return (
-                      <tr key={student.id} className="border-t border-border">
-                        <td className="px-4 py-4 text-sm text-slate-900">{student.firstName} {student.lastName}</td>
-                        <td className="px-4 py-4">
-                          <input
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            max={exam.maxNotes}
-                            value={gradeValue}
-                            disabled={!canEdit}
-                            onChange={(event) => handleGradeChange(student.id, event.target.value)}
-                            className="w-full rounded-2xl border border-border bg-slate-50 px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
-                            placeholder="0"
-                          />
-                        </td>
-                        <td className="px-4 py-4 text-sm text-slate-600">{exam.maxNotes}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {submitState.status === 'success' && (
-              <div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4" />
-                  <span>{submitState.message}</span>
-                </div>
-              </div>
-            )}
-
-            {submitState.status === 'error' && (
-              <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                {submitState.message}
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-    </>
+        <StudentsGradingCard
+          students={roster.students}
+          grades={grades}
+          onGradeChange={handleGradeChange}
+          maxNotes={exam.maxNotes}
+          canEdit={canEdit}
+          onSave={handleSave}
+          isSaving={submitState.status === "saving"}
+          loading={roster.loading}
+          error={roster.error}
+          submitState={submitState}
+        />
+      </div>
+    </PageShell>
   );
 }

@@ -1,4 +1,3 @@
-cat << 'EOF' > README.md
 # 🎓 EduFlow — Plateforme ENT Next-Gen
 
 > **Un environnement numérique de travail (ENT) moderne inspiré de Pronote, conçu pour simplifier la vie scolaire.**

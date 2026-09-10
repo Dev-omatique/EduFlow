@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -42,23 +42,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-
-type SidebarSubItem = {
-  id: number;
-  nom: string;
-  navigation: string | null;
-  icon: string | null;
-  ordre: number;
-};
-
-type SidebarItem = {
-  id: number;
-  nom: string;
-  navigation: string | null;
-  icon: string | null;
-  ordre: number;
-  subInfo: SidebarSubItem[];
-};
+import { useSidebar, type SidebarItem, type SidebarSubItem } from "@/context/SidebarContext";
 
 const iconMap: Record<string, LucideIcon> = {
   Home,
@@ -239,14 +223,10 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
-
-  const [items, setItems] = useState<SidebarItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { items, isLoading, error } = useSidebar();
 
   const handleLogout = async () => {
     try {
-      localStorage.removeItem("eduflow_sidebar_cache");
-
       await logout();
 
       router.push("/auth/login");
@@ -254,38 +234,10 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     } catch (error) {
       console.error("Erreur déconnexion :", error);
 
-      localStorage.removeItem("eduflow_sidebar_cache");
       router.push("/auth/login");
       router.refresh();
     }
   };
-
-  useEffect(() => {
-    const fetchSidebar = async () => {
-      try {
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/sidebar`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Erreur lors du chargement de la sidebar");
-        }
-
-        const data: SidebarItem[] = await response.json();
-        setItems(data);
-      } catch (error) {
-        console.error("Erreur sidebar :", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSidebar();
-  }, []);
 
   return (
     <aside className="flex h-screen w-[250px] flex-col bg-primary text-primary-foreground">
@@ -302,8 +254,10 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       </div>
 
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
-        {loading ? (
+        {isLoading ? (
           <p className="px-4 text-sm text-white/70">Chargement...</p>
+        ) : error ? (
+          <p className="px-4 text-sm text-white/70">Menu indisponible</p>
         ) : items.length === 0 ? (
           <p className="px-4 text-sm text-white/70">Aucun menu disponible</p>
         ) : (

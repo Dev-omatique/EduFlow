@@ -9,9 +9,8 @@ examRouter.get('/:type/:id', checkPermission('VIEW_EXAMS'), examController.getTy
 examRouter.get('/:id', checkPermission('VIEW_EXAMS'), examController.getOne);
 
 examRouter.post('/', checkPermission('CREATE_EXAMS'), examController.create);
-
 examRouter.put('/:id', checkPermission('CREATE_EXAMS'), examController.update);
-
 examRouter.delete('/:id', checkPermission('CREATE_EXAMS'), examController.delete);
+
 
 export default examRouter;

@@ -13,7 +13,8 @@ export default (sequelize, DataTypes) => {
     }
   }
   Subject.init({
-    type: DataTypes.STRING
+    type: DataTypes.STRING,
+    color: DataTypes.STRING // <-- Ajoutez cette ligne
   }, {
     sequelize,
     modelName: 'Subject',
