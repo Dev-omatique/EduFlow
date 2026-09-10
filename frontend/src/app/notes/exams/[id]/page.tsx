@@ -424,7 +424,7 @@ export default function ExamDetailPage({ params }: { params: Promise<{ id: strin
 
   const classAverage = (() => {
     const numericGrades = Object.values(roster.notesByStudent)
-      .map((note) => parseFloat(note.grade))
+      .map((note) => Number.parseFloat(note.grade))
       .filter((value) => !Number.isNaN(value));
 
     if (numericGrades.length === 0) return null;

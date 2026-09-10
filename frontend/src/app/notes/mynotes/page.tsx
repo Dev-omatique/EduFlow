@@ -120,7 +120,7 @@ async function getClassNotes(examId: number): Promise<ClassNote[]> {
 
 function calculateClassStats(classNotes: ClassNote[]): ClassStats {
   const grades = classNotes
-    .map((note) => parseFloat(note.grade))
+    .map((note) => Number.parseFloat(note.grade))
     .filter((grade) => !Number.isNaN(grade));
 
   if (grades.length === 0) {
@@ -141,8 +141,8 @@ function calculateClassStats(classNotes: ClassNote[]): ClassStats {
 }
 
 function getGradeOn20(note: NoteBackend): number {
-  const maxNotes = parseFloat(note.Exam?.maxNotes ?? "20") || 20;
-  const grade = parseFloat(note.grade) || 0;
+  const maxNotes = Number.parseFloat(note.Exam?.maxNotes ?? "20") || 20;
+  const grade = Number.parseFloat(note.grade) || 0;
 
   return (grade / maxNotes) * 20;
 }

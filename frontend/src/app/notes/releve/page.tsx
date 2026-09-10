@@ -86,7 +86,7 @@ async function getNotes(
 // ---------------------------------------------------------------------------
 
 function formatGrade(note: NoteBackend): string {
-  const maxNotes = parseFloat(note.Exam?.maxNotes ?? "20");
+  const maxNotes = Number.parseFloat(note.Exam?.maxNotes ?? "20");
 
   return `${note.grade}/${maxNotes}`;
 }

@@ -128,8 +128,8 @@ export default function NotesWidget() {
         ) : (
           <div className="space-y-3">
             {notes.map((note) => {
-              const gradeVal = parseFloat(note.grade);
-              const maxVal = note.Exam?.maxNotes ? parseFloat(note.Exam.maxNotes) : 20;
+              const gradeVal = Number.parseFloat(note.grade);
+              const maxVal = note.Exam?.maxNotes ? Number.parseFloat(note.Exam.maxNotes) : 20;
 
               return (
                 <div
