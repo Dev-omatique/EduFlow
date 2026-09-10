@@ -8,6 +8,8 @@ attendanceRouter.post('/', checkPermission('CREATE_ATTENDANCE'), attendanceContr
 
 attendanceRouter.put('/:id', checkPermission('EDIT_ATTENDANCE'), attendanceController.update);
 
+attendanceRouter.delete('/:id', checkPermission('EDIT_ATTENDANCE'), attendanceController.delete);
+
 
 attendanceRouter.get('/:type/:id', checkPermission('VIEW_ATTENDANCE'), attendanceController.getTypeAll);
 

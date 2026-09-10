@@ -7,6 +7,7 @@ var noteRouter = Router();
 noteRouter.post('/', checkPermission('CREATE_GRADES'), noteController.create);
 
 noteRouter.put('/:id', checkPermission('EDIT_GRADES'), noteController.update);
+noteRouter.delete('/:id', checkPermission('EDIT_GRADES'), noteController.delete);
 
 
 // ---------------------------------------------------- //

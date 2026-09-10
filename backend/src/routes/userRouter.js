@@ -10,8 +10,8 @@ userRouter.get('/', checkPermission('MANAGE_USERS'), userController.getAll);
 userRouter.post('/', checkPermission('MANAGE_USERS'), userController.create);
 
 userRouter.get('/:type/:id', checkPermission('MANAGE_USERS'), userController.getTypeAll);
-
 userRouter.get('/:id', checkPermission('MANAGE_USERS'), userController.getOne);
+
 userRouter.put('/:id', checkPermission('MANAGE_USERS'), userController.update);
 userRouter.delete('/:id', checkPermission('MANAGE_USERS'), userController.delete);
 

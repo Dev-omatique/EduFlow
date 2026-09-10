@@ -13,6 +13,10 @@ import authRoutes from "./authRoutes.js";
 import { authRequired } from "../middlewares/authMiddleware.js";
 import sidebarRouter from './sidebarRouter.js';
 import courseStatusRouter from './courseStatusRouter.js';
+import blocknoteRouter from './blocknoteRouter.js';
+import penaltyRouter from './penaltyRouter.js';
+import permissionRouter from './permissionRouter.js';
+import roleRouter from './roleRouter.js';
 
 
 const router = Router();
@@ -36,6 +40,10 @@ router.use('/rooms', roomRouter);
 router.use('/subjects', subjectRouter);
 router.use('/sidebar', sidebarRouter);
 router.use('/course-statuses', courseStatusRouter);
+router.use('/blocknotes', blocknoteRouter);
+router.use('/penalties', penaltyRouter);
+router.use('/permissions', permissionRouter);
+router.use('/roles', roleRouter);
 
 
 
