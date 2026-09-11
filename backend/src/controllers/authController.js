@@ -4,6 +4,49 @@ import db from "../models/index.js";
 
 const { User } = db;
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_BLOCK_DURATION_MS = 15 * 60 * 1000;
+const loginAttempts = new Map();
+
+function getLoginKey(email) {
+  return email.trim().toLowerCase();
+}
+
+function getLoginAttempt(key) {
+  const attempt = loginAttempts.get(key);
+
+  if (!attempt) {
+    return null;
+  }
+
+  if (attempt.blockedUntil && attempt.blockedUntil <= Date.now()) {
+    loginAttempts.delete(key);
+    return null;
+  }
+
+  return attempt;
+}
+
+function registerFailedLogin(key) {
+  const currentAttempt = getLoginAttempt(key);
+  const failedAttempts = (currentAttempt?.failedAttempts ?? 0) + 1;
+  const blockedUntil =
+    failedAttempts >= MAX_LOGIN_ATTEMPTS
+      ? Date.now() + LOGIN_BLOCK_DURATION_MS
+      : null;
+
+  loginAttempts.set(key, {
+    failedAttempts,
+    blockedUntil,
+  });
+
+  return blockedUntil;
+}
+
+function clearLoginAttempts(key) {
+  loginAttempts.delete(key);
+}
+
 const cookieOptions = {
   httpOnly: true,
   sameSite: "lax",
@@ -122,11 +165,29 @@ export const login = async (req, res, next) => {
       });
     }
 
+    const loginKey = getLoginKey(email);
+    const previousAttempt = getLoginAttempt(loginKey);
+
+    if (previousAttempt?.blockedUntil) {
+      const retryAfterSeconds = Math.ceil(
+        (previousAttempt.blockedUntil - Date.now()) / 1000
+      );
+
+      res.set("Retry-After", String(retryAfterSeconds));
+
+      return res.status(429).json({
+        message: "Trop de tentatives. Réessayez dans 15 minutes.",
+        retryAfterSeconds,
+      });
+    }
+
     const user = await User.findOne({
       where: { email },
     });
 
     if (!user) {
+      registerFailedLogin(loginKey);
+
       return res.status(401).json({
         message: "Identifiants invalides",
       });
@@ -135,10 +196,14 @@ export const login = async (req, res, next) => {
     const ok = await bcrypt.compare(password, user.password);
 
     if (!ok) {
+      registerFailedLogin(loginKey);
+
       return res.status(401).json({
         message: "Identifiants invalides",
       });
     }
+
+    clearLoginAttempts(loginKey);
 
     const token = jwt.sign(
       { userId: user.id },
