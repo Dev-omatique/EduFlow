@@ -11,10 +11,12 @@ import {
   AlertCircle,
   FileText,
   Plus,
+  CalendarRange,
 } from "lucide-react";
 import Sidebar from "@/components/layout/Sidebar";
 import { useAuth } from "@/context/AuthContext";
 import CreateExamModal from "@/components/exam/CreateExamModal";
+import AcademicPeriodsDialog from "@/components/exam/AcademicPeriodsDialog";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +45,7 @@ type ExamItem = {
   isGraded: boolean;
   Subject?: { type: string };
   Grade?: { name: string };
+  AcademicPeriod?: { label: string; schoolYear: string } | null;
 };
 
 type CurrentUser = {
@@ -286,6 +289,9 @@ function ExamCard({ exam }: { exam: ExamItem }) {
               <Users className="h-3.5 w-3.5" />
               {exam.Grade?.name || "Classe"}
             </span>
+            {exam.AcademicPeriod && (
+              <span>{exam.AcademicPeriod.label} · {exam.AcademicPeriod.schoolYear}</span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -302,6 +308,7 @@ export default function ExamListPage() {
   const { exams, loading, error, refetch } = useExams(user);
   const filters = useExamFilters(exams);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isPeriodsOpen, setIsPeriodsOpen] = useState(false);
 
   const isTeacher = user?.Role.role === "TEACHER";
 
@@ -353,6 +360,11 @@ export default function ExamListPage() {
 
               {isTeacher && (
                 <>
+                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setIsPeriodsOpen(true)}>
+                    <CalendarRange className="h-4 w-4" />
+                    Périodes
+                  </Button>
+
                   <Button size="sm" className="gap-1.5" onClick={() => setIsCreateOpen(true)}>
                     <Plus className="h-4 w-4" />
                     Créer un devoir
@@ -363,6 +375,10 @@ export default function ExamListPage() {
                     onClose={() => setIsCreateOpen(false)}
                     onSuccess={refetch}
                     teacherId={user.id}
+                  />
+                  <AcademicPeriodsDialog
+                    isOpen={isPeriodsOpen}
+                    onClose={() => setIsPeriodsOpen(false)}
                   />
                 </>
               )}

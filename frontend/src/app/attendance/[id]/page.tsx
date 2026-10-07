@@ -343,8 +343,8 @@ export default function AttendanceDetailPage({
                 </Button>
 
                 {submitState.status === "success" && (
-                  <Alert className="border-emerald-500/50 text-emerald-600 bg-emerald-500/10">
-                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                  <Alert className="border-success/40 text-success bg-success/10">
+                    <CheckCircle className="h-4 w-4 text-success" />
                     <AlertTitle>Succès</AlertTitle>
                     <AlertDescription>{submitState.message}</AlertDescription>
                   </Alert>

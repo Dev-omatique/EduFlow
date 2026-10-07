@@ -14,10 +14,10 @@ export default function DashboardPage() {
       <main className="min-h-screen bg-background px-4 py-6 pt-20 lg:ml-[250px] lg:w-[calc(100%-250px)] lg:p-6">
         <div className="mx-auto w-full max-w-7xl space-y-6">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 md:text-3xl">
+            <h1 className="text-2xl font-bold text-foreground md:text-3xl">
               Bonjour 👋
             </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600">
+            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
               Bienvenue sur votre espace vie scolaire. Voici un aperçu de
               l&apos;emploi du temps et des dernières actualités.
             </p>

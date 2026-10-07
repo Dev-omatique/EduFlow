@@ -17,9 +17,7 @@ export default {
     );
 
     if (roles.length === 0 || permissions.length === 0) {
-      throw new Error(
-        'Le rôle VIE_SCOLAIRE ou la permission SEND_GROUP_MESSAGES est introuvable.'
-      );
+      return;
     }
 
     const roleId = roles[0].id;

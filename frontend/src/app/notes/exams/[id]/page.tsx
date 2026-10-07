@@ -24,6 +24,7 @@ type ExamDetail = {
   coefficient: number;
   Subject?: { type: string };
   Grade?: { id: number; name: string };
+  AcademicPeriod?: { label: string; schoolYear: string } | null;
 };
 
 type Student = { id: number; firstName: string; lastName: string };
@@ -74,28 +75,12 @@ async function fetchExamNotes(examId: string): Promise<ExistingNote[]> {
   return response.json();
 }
 
-async function saveNote(note: NotePayload) {
-  const response = await fetch(`${API_BASE_URL}/api/notes`, {
+async function saveNotes(examId: number, notes: NotePayload[]) {
+  const response = await fetch(`${API_BASE_URL}/api/notes/bulk`, {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(note),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || `HTTP Error: ${response.status}`);
-  }
-
-  return response.json();
-}
-
-async function updateNote(noteId: number, note: NotePayload) {
-  const response = await fetch(`${API_BASE_URL}/api/notes/${noteId}`, {
-    method: "PUT",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(note),
+    body: JSON.stringify({ examId, notes }),
   });
 
   if (!response.ok) {
@@ -244,6 +229,11 @@ function ExamSummaryCard({
               {exam.Subject?.type || "Matière"}
             </p>
             <h1 className="mt-1 text-2xl font-bold text-foreground">{exam.title}</h1>
+            {exam.AcademicPeriod && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {exam.AcademicPeriod.label} · {exam.AcademicPeriod.schoolYear}
+              </p>
+            )}
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
               {exam.description || "Aucune description fournie."}
             </p>
@@ -440,14 +430,11 @@ export default function ExamDetailPage({ params }: { params: Promise<{ id: strin
   const handleSave = async () => {
     if (!exam) return;
 
-    const payloads = roster.students
+    const notes = roster.students
       .filter((student) => grades[student.id] !== undefined && grades[student.id] !== "")
-      .map((student) => ({
-        note: { studentId: student.id, examId: exam.id, grade: grades[student.id] } as NotePayload,
-        noteId: roster.notesByStudent[student.id]?.id,
-      }));
+      .map((student) => ({ studentId: student.id, examId: exam.id, grade: grades[student.id] }));
 
-    if (payloads.length === 0) {
+    if (notes.length === 0) {
       setSubmitState({ status: "error", message: "Aucune note à enregistrer." });
       return;
     }
@@ -455,7 +442,7 @@ export default function ExamDetailPage({ params }: { params: Promise<{ id: strin
     setSubmitState({ status: "saving" });
 
     try {
-      await Promise.all(payloads.map(({ note, noteId }) => (noteId ? updateNote(noteId, note) : saveNote(note))));
+      await saveNotes(exam.id, notes);
       roster.reload();
       setSubmitState({ status: "success", message: "Notes enregistrées avec succès." });
     } catch (err: any) {

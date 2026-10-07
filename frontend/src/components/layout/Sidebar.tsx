@@ -10,7 +10,6 @@ import {
   User,
   MessageSquare,
   LogOut,
-  GraduationCap,
   Menu,
   X,
   BookOpen,
@@ -109,8 +108,8 @@ function SidebarLink({
         "group flex items-center gap-3 rounded-xl text-sm font-medium transition-all",
         isSubItem ? "px-3 py-2 ml-6" : "px-4 py-3",
         active
-          ? "bg-white text-primary shadow-sm"
-          : "text-white hover:bg-white/15"
+          ? "bg-background text-primary shadow-sm"
+          : "text-primary-foreground hover:bg-primary-foreground/15"
       )}
     >
       <div
@@ -119,7 +118,7 @@ function SidebarLink({
           isSubItem ? "h-7 w-7" : "h-9 w-9",
           active
             ? "border-primary-light bg-primary-light text-primary"
-            : "border-white/20 bg-white/10 text-white"
+            : "border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground"
         )}
       >
         <Icon className={cn(isSubItem ? "h-4 w-4" : "h-5 w-5")} />
@@ -170,8 +169,8 @@ function SidebarGroup({
         className={cn(
           "group flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
           active
-            ? "bg-white text-primary shadow-sm"
-            : "text-white hover:bg-white/15"
+            ? "bg-background text-primary shadow-sm"
+            : "text-primary-foreground hover:bg-primary-foreground/15"
         )}
       >
         <div
@@ -179,7 +178,7 @@ function SidebarGroup({
             "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
             active
               ? "border-primary-light bg-primary-light text-primary"
-              : "border-white/20 bg-white/10 text-white"
+              : "border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground"
           )}
         >
           <Icon className="h-5 w-5" />
@@ -241,25 +240,22 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <aside className="flex h-screen w-[250px] flex-col bg-primary text-primary-foreground">
-      <div className="border-b border-white/20 px-5 py-6">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
-            <GraduationCap className="h-7 w-7 text-white" />
-          </div>
+      <div className="border-b border-primary-foreground/20 px-5 py-6">
+        <div>
           <div>
             <p className="text-3xl font-bold leading-none">EduFlow</p>
-            <p className="text-xs text-white/80">Espace ENT</p>
+            <p className="text-xs text-primary-foreground/80">Espace ENT</p>
           </div>
         </div>
       </div>
 
       <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
         {isLoading ? (
-          <p className="px-4 text-sm text-white/70">Chargement...</p>
+          <p className="px-4 text-sm text-primary-foreground/70">Chargement...</p>
         ) : error ? (
-          <p className="px-4 text-sm text-white/70">Menu indisponible</p>
+          <p className="px-4 text-sm text-primary-foreground/70">Menu indisponible</p>
         ) : items.length === 0 ? (
-          <p className="px-4 text-sm text-white/70">Aucun menu disponible</p>
+          <p className="px-4 text-sm text-primary-foreground/70">Aucun menu disponible</p>
         ) : (
           items.map((item) => (
             <SidebarGroup
@@ -275,7 +271,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       <div className="px-4 pb-5">
         <Button
           onClick={handleLogout}
-          className="w-full justify-start gap-3 rounded-2xl border-0 bg-white text-primary hover:bg-primary-light"
+          className="w-full justify-start gap-3 rounded-2xl border-0 bg-background text-primary hover:bg-primary-light"
         >
           <LogOut className="h-5 w-5" />
           Déconnexion
@@ -292,7 +288,7 @@ export default function Sidebar() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed left-4 top-4 z-50 rounded-xl border bg-white p-2 shadow-md lg:hidden"
+        className="fixed left-4 top-4 z-50 rounded-xl border bg-background p-2 shadow-md lg:hidden"
       >
         <Menu className="h-6 w-6 text-primary" />
       </button>
@@ -318,7 +314,7 @@ export default function Sidebar() {
 
         <button
           onClick={() => setOpen(false)}
-          className="absolute right-3 top-3 rounded-lg bg-white p-1 shadow"
+          className="absolute right-3 top-3 rounded-lg bg-background p-1 shadow"
         >
           <X className="h-5 w-5 text-primary" />
         </button>

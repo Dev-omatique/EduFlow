@@ -460,7 +460,7 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
             <Badge 
               variant="outline"
               style={statusStyle}
-              className="text-[8px] bg-amber-100/90 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-200 dark:border-amber-800 px-1 py-0 h-4 font-bold uppercase rounded-xs shrink-0"
+              className="shrink-0 rounded-xs border-warning/30 bg-warning/10 px-1 py-0 text-[8px] font-bold uppercase text-warning"
             >
               {statusLabel}
             </Badge>
@@ -479,7 +479,7 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
       {statusLabel && (
         <div 
           style={statusStyle}
-          className="w-full bg-amber-100/90 text-amber-950 dark:bg-amber-950/90 dark:text-amber-200 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-center shrink-0 border-b border-amber-200/50"
+          className="w-full shrink-0 border-b border-warning/20 bg-warning/10 px-2 py-0.5 text-center text-[9px] font-bold uppercase tracking-wider text-warning"
         >
           {statusLabel}
         </div>
@@ -487,22 +487,22 @@ function renderEventContent(eventInfo: { event: EventApi; timeText: string }) {
 
       <div className="flex flex-col gap-0.5 px-2 py-1 flex-1 justify-between min-h-0">
         <div className="overflow-hidden">
-          <span className="font-semibold text-[11px] md:text-[12px] tracking-tight leading-tight text-slate-900 dark:text-slate-100 truncate block">
+          <span className="font-semibold text-[11px] md:text-[12px] tracking-tight leading-tight text-calendar-event-foreground truncate block">
             {eventInfo.event.title}
           </span>
           
           {participant && (
-            <span className="text-[10px] font-medium opacity-75 text-slate-700 dark:text-slate-300 truncate block mt-0.5">
+            <span className="text-[10px] font-medium opacity-75 text-calendar-event-muted-foreground truncate block mt-0.5">
               {participant}
             </span>
           )}
         </div>
         
         <div className="flex items-center justify-between gap-1 pt-0.5">
-          <span className="text-[10px] font-semibold opacity-90 text-slate-600 dark:text-slate-400 truncate">
+          <span className="text-[10px] font-semibold opacity-90 text-calendar-event-muted-foreground truncate">
             {room || "Sans salle"}
           </span>
-          <span className="text-[9px] font-mono opacity-75 text-slate-500 dark:text-slate-400 shrink-0">
+          <span className="text-[9px] font-mono opacity-75 text-calendar-event-muted-foreground shrink-0">
             {eventInfo.timeText}
           </span>
         </div>
