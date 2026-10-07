@@ -33,19 +33,17 @@ jobs:
 
       - name: Run migrations
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           NODE_ENV: test
         run: npm run migrate
 
       - name: Run tests
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
           FRONTEND_URL: http://localhost:3000
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL }}
-          TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD }}
+          JWT_SECRET: ci-test-secret
           NODE_ENV: test
-        run: npm test -- --coverage
+        run: npm test -- --coverage --runInBand
 
       - name: Upload test results
         if: always()
