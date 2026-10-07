@@ -12,6 +12,10 @@ export default (sequelize, DataTypes) => {
       Exam.hasMany(models.Note, { foreignKey: "examId" });
       Exam.belongsTo(models.Subject, { foreignKey: "subjectId" });
       Exam.belongsTo(models.Grade, { foreignKey: "gradeId" });
+      Exam.belongsTo(models.AcademicPeriod, {
+        foreignKey: "academicPeriodId",
+        as: "AcademicPeriod",
+      });
     }
   }
   Exam.init({
@@ -23,7 +27,8 @@ export default (sequelize, DataTypes) => {
     isGraded: DataTypes.BOOLEAN,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,
-    gradeId: DataTypes.INTEGER
+    gradeId: DataTypes.INTEGER,
+    academicPeriodId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Exam',

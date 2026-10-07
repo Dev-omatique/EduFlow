@@ -67,7 +67,7 @@ export default function CourseDetailsModal({
         <div className="p-6 flex flex-col gap-4">
           
           {course.statusLabel && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs font-semibold uppercase tracking-wider">
+            <div className="flex items-center gap-2 rounded-xl border border-warning/20 bg-warning/10 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-warning">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>Statut : {course.statusLabel}</span>
             </div>

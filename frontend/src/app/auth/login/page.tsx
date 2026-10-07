@@ -1,8 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -61,22 +66,18 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen grid md:grid-cols-2 bg-white">
+    <div className="min-h-screen grid md:grid-cols-2 bg-background">
       {/* Panneau gauche — identité, visible à partir de md */}
-      <div className="hidden md:flex relative flex-col justify-between bg-primary text-white p-12 overflow-hidden">
+      <div className="hidden md:flex relative flex-col justify-between bg-primary text-primary-foreground p-12 overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.08]"
           style={{
-            backgroundImage: "radial-gradient(circle, #ffffff 1px, transparent 1px)",
+            backgroundImage: "radial-gradient(circle, var(--primary-foreground) 1px, transparent 1px)",
             backgroundSize: "22px 22px",
           }}
         />
 
         <div className="relative flex items-center gap-2.5">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-            <path d="M6 12v5c3 3 9 3 12 0v-5" />
-          </svg>
           <span className="text-lg font-semibold tracking-tight">EduFlow</span>
         </div>
 
@@ -84,7 +85,7 @@ export default function LoginPage() {
           <p className="text-2xl font-semibold leading-snug mb-3">
             Votre espace numérique de travail, réuni au même endroit.
           </p>
-          <p className="text-sm text-white/80">
+          <p className="text-sm text-primary-foreground/80">
             Notes, emploi du temps et communications — un seul compte pour tout suivre.
           </p>
         </div>
@@ -93,28 +94,26 @@ export default function LoginPage() {
       {/* Panneau droit — formulaire */}
       <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-20">
         <div className="w-full max-w-sm mx-auto">
-          {/* Logo affiché uniquement sur mobile, remplace le panneau gauche */}
-          <div className="flex md:hidden items-center gap-2.5 mb-10">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-                <path d="M6 12v5c3 3 9 3 12 0v-5" />
-              </svg>
-            </div>
-            <span className="text-base font-semibold text-gray-900">EduFlow</span>
+          <div className="relative mx-auto mb-3 h-24 w-24">
+            <Image
+              src="/eduflow-logo.png"
+              alt="Logo EduFlow"
+              width={96}
+              height={96}
+              className="absolute left-[48%] top-[54%] h-[155%] w-[155%] max-w-none -translate-x-1/2 -translate-y-1/2 object-contain"
+            />
           </div>
-
-          <h1 className="text-xl font-semibold text-gray-900">Connexion</h1>
-          <p className="text-sm text-gray-500 mt-1 mb-8">
+          <h1 className="text-center text-xl font-semibold text-foreground">Connexion</h1>
+          <p className="text-sm text-muted-foreground mt-1 mb-8">
             Entrez vos identifiants pour accéder à votre espace ENT.
           </p>
 
           <form onSubmit={handleLogin} noValidate className="space-y-5">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Adresse email
               </label>
-              <input
+              <Input
                 id="email"
                 name="email"
                 type="email"
@@ -122,15 +121,15 @@ export default function LoginPage() {
                 value={formData.email}
                 onChange={handleChange}
                 autoComplete="email"
-                className="w-full px-3.5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition"
+                className="h-11 bg-background"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Mot de passe
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
@@ -138,37 +137,28 @@ export default function LoginPage() {
                 value={formData.password}
                 onChange={handleChange}
                 autoComplete="current-password"
-                className="w-full px-3.5 py-2.5 rounded-md border border-gray-300 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition"
+                className="h-11 bg-background"
               />
             </div>
 
             {error && (
-              <div className="flex items-start gap-2.5 border-l-2 border-red-500 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 flex-shrink-0">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="8" x2="12" y2="12" />
-                  <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-                <span>{error}</span>
-              </div>
+              <Alert variant="destructive">
+                <AlertCircle />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
 
-            <button
+            <Button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md bg-primary hover:bg-primary-hover text-white text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full"
             >
-              {loading && (
-                <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-              )}
+              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
               {loading ? "Connexion en cours…" : "Se connecter"}
-            </button>
+            </Button>
           </form>
 
-          <p className="text-xs text-gray-400 mt-8 text-center">
+          <p className="text-xs text-muted-foreground mt-8 text-center">
             Besoin d&apos;aide ? Contactez l&apos;administration de votre établissement.
           </p>
         </div>

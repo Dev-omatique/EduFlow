@@ -19,6 +19,13 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -34,18 +41,34 @@ type NoteBackend = {
   Exam: {
     id: number;
     title: string;
+    dueDate?: string | null;
     maxNotes: string;
     coefficient: number;
     Subject: {
       id: number;
       type: string;
     };
+    AcademicPeriod?: {
+      id: number;
+      label: string;
+      periodType: "TRIMESTER" | "SEMESTER";
+      number: number;
+      schoolYear: string;
+    } | null;
   };
 };
 
 type SubjectNotes = {
   subject: string;
   notes: NoteBackend[];
+};
+
+type AcademicPeriod = {
+  id: number;
+  label: string;
+  periodType: "TRIMESTER" | "SEMESTER";
+  number: number;
+  schoolYear: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -61,10 +84,14 @@ const SIDEBAR_OFFSET = "lg:pl-[280px]";
 
 async function getNotes(
   roleName: string,
-  userId: number
+  userId: number,
+  selectedPeriod: string,
 ): Promise<NoteBackend[]> {
+  const query = selectedPeriod === "all"
+    ? ""
+    : `?academicPeriodId=${encodeURIComponent(selectedPeriod)}`;
   const response = await fetch(
-    `${API_BASE_URL}/api/notes/${roleName}/${userId}`,
+    `${API_BASE_URL}/api/notes/${roleName}/${userId}${query}`,
     {
       method: "GET",
       credentials: "include",
@@ -78,6 +105,16 @@ async function getNotes(
     throw new Error(`HTTP Error: ${response.status}`);
   }
 
+  return response.json();
+}
+
+async function getAcademicPeriods(): Promise<AcademicPeriod[]> {
+  const response = await fetch(`${API_BASE_URL}/api/academic-periods/mine`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
   return response.json();
 }
 
@@ -106,7 +143,8 @@ function formatDate(dateStr?: string): string {
 // ---------------------------------------------------------------------------
 
 function useNotes(
-  user: { id: number; Role: { role: string } } | null | undefined
+  user: { id: number; Role: { role: string } } | null | undefined,
+  selectedPeriod: string,
 ) {
   const [notes, setNotes] = useState<NoteBackend[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,7 +165,7 @@ function useNotes(
         setError(null);
 
         const roleName = currentUser.Role.role.toLowerCase();
-        const data = await getNotes(roleName, currentUser.id);
+        const data = await getNotes(roleName, currentUser.id, selectedPeriod);
 
         if (!cancelled) {
           setNotes(data);
@@ -150,7 +188,7 @@ function useNotes(
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, selectedPeriod]);
 
   return {
     notes,
@@ -317,7 +355,28 @@ function ReportCardTable({ notes }: { notes: NoteBackend[] }) {
 
 export default function MyNotesPage() {
   const { user, isLoading: authLoading } = useAuth();
-  const { notes, loading, error } = useNotes(user);
+  const [selectedTerm, setSelectedTerm] = useState("all");
+  const { notes, loading, error } = useNotes(user, selectedTerm);
+  const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([]);
+  const [periodsError, setPeriodsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+
+    let cancelled = false;
+    getAcademicPeriods()
+      .then((periods) => {
+        if (!cancelled) setAcademicPeriods(periods);
+      })
+      .catch((periodError: unknown) => {
+        console.error("Erreur périodes scolaires :", periodError);
+        if (!cancelled) setPeriodsError("Impossible de charger les périodes scolaires.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   if (authLoading || loading) {
     return <NotesPageSkeleton />;
@@ -369,6 +428,32 @@ export default function MyNotesPage() {
             Consultez vos notes regroupées par matière.
           </p>
         </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <label htmlFor="report-term" className="text-sm font-medium">
+            Période
+          </label>
+          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+            <SelectTrigger id="report-term" className="w-[min(100%,280px)]">
+              <SelectValue placeholder="Toutes les périodes" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes les périodes</SelectItem>
+              {academicPeriods.map((term) => (
+                <SelectItem key={term.id} value={String(term.id)}>
+                  {term.label} · {term.schoolYear}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {periodsError && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{periodsError}</AlertDescription>
+          </Alert>
+        )}
 
         <ReportCardTable notes={notes} />
       </div>

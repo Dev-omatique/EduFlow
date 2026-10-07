@@ -141,7 +141,7 @@ export default function ExamsWidget() {
           </Alert>
         ) : exams.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-            <CheckCircle2 className="h-8 w-8 stroke-1 text-emerald-500 mb-2" />
+            <CheckCircle2 className="h-8 w-8 stroke-1 text-success mb-2" />
             <p className="text-sm font-medium">Aucun devoir à venir.</p>
           </div>
         ) : (

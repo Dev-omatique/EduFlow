@@ -53,15 +53,6 @@ type NoteBackend = {
   };
 };
 
-type ClassNote = {
-  id: number;
-  grade: string;
-  studentId: number;
-  examId: number;
-  noteStatusId: number;
-  createdAt: string;
-};
-
 type ClassStats = {
   average: number;
   min: number;
@@ -98,8 +89,8 @@ async function getNotes(
   return response.json();
 }
 
-async function getClassNotes(examId: number): Promise<ClassNote[]> {
-  const response = await fetch(`${API_BASE_URL}/api/notes/exam/${examId}`, {
+async function getClassStats(examId: number): Promise<ClassStats> {
+  const response = await fetch(`${API_BASE_URL}/api/notes/exam/${examId}/stats`, {
     method: "GET",
     credentials: "include",
     headers: {
@@ -112,32 +103,6 @@ async function getClassNotes(examId: number): Promise<ClassNote[]> {
   }
 
   return response.json();
-}
-
-// ---------------------------------------------------------------------------
-// Calculs
-// ---------------------------------------------------------------------------
-
-function calculateClassStats(classNotes: ClassNote[]): ClassStats {
-  const grades = classNotes
-    .map((note) => Number.parseFloat(note.grade))
-    .filter((grade) => !Number.isNaN(grade));
-
-  if (grades.length === 0) {
-    return {
-      average: 0,
-      min: 0,
-      max: 0,
-      count: 0,
-    };
-  }
-
-  return {
-    average: grades.reduce((sum, grade) => sum + grade, 0) / grades.length,
-    min: Math.min(...grades),
-    max: Math.max(...grades),
-    count: grades.length,
-  };
 }
 
 function getGradeOn20(note: NoteBackend): number {
@@ -215,16 +180,6 @@ function useNotes(
   };
 }
 
-const classNotesCache = new Map<number, Promise<ClassNote[]>>();
-
-function getClassNotesCached(examId: number): Promise<ClassNote[]> {
-  if (!classNotesCache.has(examId)) {
-    classNotesCache.set(examId, getClassNotes(examId));
-  }
-
-  return classNotesCache.get(examId)!;
-}
-
 function useExamClassStats(examId: number | null) {
   const [stats, setStats] = useState<ClassStats | null>(null);
   const [loading, setLoading] = useState(false);
@@ -243,8 +198,7 @@ function useExamClassStats(examId: number | null) {
       try {
         setLoading(true);
 
-        const classNotes = await getClassNotesCached(currentExamId);
-        const calculatedStats = calculateClassStats(classNotes);
+        const calculatedStats = await getClassStats(currentExamId);
 
         if (!cancelled) {
           setStats(calculatedStats);
@@ -508,7 +462,7 @@ function NoteDetailPanel({ note }: { note: NoteBackend | null }) {
                 <div className="px-2">
                   <p className="text-xs text-muted-foreground">Minimum</p>
 
-                  <p className="mt-1 font-bold text-red-600">
+                  <p className="mt-1 font-bold text-destructive">
                     {classStats.min.toFixed(2)}
                   </p>
                 </div>
@@ -516,7 +470,7 @@ function NoteDetailPanel({ note }: { note: NoteBackend | null }) {
                 <div className="px-2">
                   <p className="text-xs text-muted-foreground">Maximum</p>
 
-                  <p className="mt-1 font-bold text-emerald-600">
+                  <p className="mt-1 font-bold text-success">
                     {classStats.max.toFixed(2)}
                   </p>
                 </div>

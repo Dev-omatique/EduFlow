@@ -28,26 +28,27 @@ export const checkPermission = (permissionCode) => {
         });
       }
 
-      const permission = await Permission.findOne({
-        where: { code: permissionCode },
+      const permissionCodes = Array.isArray(permissionCode) ? permissionCode : [permissionCode];
+      const permissions = await Permission.findAll({
+        where: { code: permissionCodes },
         attributes: ["id", "code"],
       });
 
-      if (!permission) {
+      if (permissions.length === 0) {
         return res.status(403).json({
           message: "Permission inconnue",
           requiredPermission: permissionCode,
         });
       }
 
-      const rolePermission = await RolePermission.findOne({
+      const rolePermissions = await RolePermission.findAll({
         where: {
           roleId: user.roleId,
-          permissionId: permission.id,
+          permissionId: permissions.map(({ id }) => id),
         },
       });
 
-      if (!rolePermission) {
+      if (rolePermissions.length === 0) {
         return res.status(403).json({
           message: "Accès refusé : permission insuffisante",
           requiredPermission: permissionCode,

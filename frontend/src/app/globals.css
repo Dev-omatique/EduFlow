@@ -26,6 +26,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-calendar-event-foreground: var(--calendar-event-foreground);
+  --color-calendar-event-muted-foreground: var(--calendar-event-muted-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -73,6 +77,10 @@
   --accent: oklch(0.967 0.001 286.375);
   --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.55 0.16 150);
+  --warning: oklch(0.57 0.14 65);
+  --calendar-event-foreground: oklch(0.22 0.015 250);
+  --calendar-event-muted-foreground: oklch(0.38 0.02 250);
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: #12B2E8;   /* ✅ focus ring bleu EduFlow */
@@ -110,6 +118,10 @@
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.72 0.15 150);
+  --warning: oklch(0.76 0.14 75);
+  --calendar-event-foreground: oklch(0.22 0.015 250);
+  --calendar-event-muted-foreground: oklch(0.38 0.02 250);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: #12B2E8;

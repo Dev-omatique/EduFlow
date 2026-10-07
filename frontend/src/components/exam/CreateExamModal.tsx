@@ -37,6 +37,12 @@ type Subject = {
   type: string;
 };
 
+type AcademicPeriod = {
+  id: number;
+  label: string;
+  schoolYear: string;
+};
+
 type CreateExamPayload = {
   title: string;
   description: string;
@@ -47,6 +53,7 @@ type CreateExamPayload = {
   subjectId: number;
   gradeId: number;
   teacherId: number;
+  academicPeriodId: number;
 };
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
@@ -71,6 +78,17 @@ async function fetchSubjects() {
 
   if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
   return response.json() as Promise<Subject[]>;
+}
+
+async function fetchAcademicPeriods() {
+  const response = await fetch(`${API_BASE_URL}/api/academic-periods`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+  return response.json() as Promise<AcademicPeriod[]>;
 }
 
 async function createExam(payload: CreateExamPayload) {
@@ -98,6 +116,7 @@ const emptyForm = {
   isGraded: true,
   subjectId: "",
   gradeId: "",
+  academicPeriodId: "",
 };
 
 type CreateExamModalProps = {
@@ -120,6 +139,7 @@ export default function CreateExamModal({
 }: CreateExamModalProps) {
   const [grades, setGrades] = useState<Grade[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([]);
   const [optionsError, setOptionsError] = useState<string | null>(null);
 
   const [form, setForm] = useState(emptyForm);
@@ -146,6 +166,13 @@ export default function CreateExamModal({
         console.error("Erreur chargement matières:", err);
         setOptionsError((prev) => prev || "Impossible de charger les matières.");
       });
+
+    fetchAcademicPeriods()
+      .then(setAcademicPeriods)
+      .catch((err) => {
+        console.error("Erreur chargement périodes scolaires:", err);
+        setOptionsError((prev) => prev || "Impossible de charger les périodes scolaires.");
+      });
   }, [isOpen]);
 
   useEffect(() => {
@@ -167,8 +194,13 @@ export default function CreateExamModal({
   };
 
   const handleCreate = async () => {
-    if (!form.title || !form.dueDate || !form.subjectId || !form.gradeId) {
-      setCreateState({ status: "error", message: "Merci de remplir tous les champs obligatoires." });
+    if (!form.title || !form.dueDate || !form.subjectId || !form.gradeId || !form.academicPeriodId) {
+      setCreateState({
+        status: "error",
+        message: academicPeriods.length === 0
+          ? "Configurez d’abord une période scolaire depuis la page Examens."
+          : "Merci de remplir tous les champs obligatoires.",
+      });
       return;
     }
 
@@ -185,6 +217,7 @@ export default function CreateExamModal({
         subjectId: Number(form.subjectId),
         gradeId: Number(form.gradeId),
         teacherId,
+        academicPeriodId: Number(form.academicPeriodId),
       });
 
       resetForm();
@@ -284,6 +317,26 @@ export default function CreateExamModal({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="exam-period">Trimestre / semestre *</Label>
+            <Select
+              value={form.academicPeriodId}
+              onValueChange={(value) => setForm((f) => ({ ...f, academicPeriodId: value }))}
+              disabled={academicPeriods.length === 0}
+            >
+              <SelectTrigger id="exam-period">
+                <SelectValue placeholder={academicPeriods.length ? "Choisir une période" : "Aucune période configurée"} />
+              </SelectTrigger>
+              <SelectContent>
+                {academicPeriods.map((period) => (
+                  <SelectItem key={period.id} value={String(period.id)}>
+                    {period.label} · {period.schoolYear}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center justify-between rounded-lg border p-3">
