@@ -50,7 +50,7 @@ test("POST /login - Devrait échouer avec un mauvais mot de passe", async () => 
   const res = await request(app)
     .post("/api/auth/login")
     .send({
-      email: process.env.TEST_USER_EMAIL,
+      email: TEST_USER_EMAIL,
       password: "wrongPassword123",
     });
 
