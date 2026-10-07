@@ -42,12 +42,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check test database connection
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
-          NODE_ENV: test
-        run: node src/bin/checkDatabaseConnection.js
-
       - name: Run migrations
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL_TEST }}
