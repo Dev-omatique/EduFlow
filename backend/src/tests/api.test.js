@@ -1,17 +1,46 @@
 import request from "supertest";
 import app from "../app.js";
-import dotenv from "dotenv";
+import bcrypt from "bcryptjs";
+import db from "../models/index.js";
 
-dotenv.config({ path: ".env" });
-
+const TEST_USER_EMAIL = "ci-admin@eduflow.test";
+const TEST_USER_PASSWORD = "CiTestPassword123";
 let cookie;
+let courseFixtures;
 
 beforeAll(async () => {
+  const role = await db.Roles.create({ role: "CI_ADMIN" });
+  const permissions = await db.Permission.bulkCreate([
+    { code: "MANAGE_USERS", description: "CI test user management" },
+    { code: "MANAGE_SCHEDULE", description: "CI test schedule management" },
+    { code: "VIEW_SCHEDULE", description: "CI test schedule viewing" },
+  ]);
+  await db.RolePermission.bulkCreate(permissions.map((permission) => ({
+    roleId: role.id,
+    permissionId: permission.id,
+  })));
+
+  const grade = await db.Grade.create({ name: "CI Grade", schoolYear: "2024-09-01" });
+  const subject = await db.Subject.create({ type: "CI Subject", color: "#12B2E8" });
+  const roomType = await db.RoomType.create({ type: "CI Room" });
+  const room = await db.Room.create({ name: "CI Room 1", roomTypeId: roomType.id });
+  const user = await db.User.create({
+    username: "ci-admin",
+    email: TEST_USER_EMAIL,
+    password: await bcrypt.hash(TEST_USER_PASSWORD, 10),
+    firstName: "CI",
+    lastName: "Admin",
+    roleId: role.id,
+    gradeId: grade.id,
+  });
+
+  courseFixtures = { gradeId: grade.id, subjectId: subject.id, roomId: room.id, teacherId: user.id };
+
   const res = await request(app)
     .post("/api/auth/login")
     .send({
-      email: process.env.TEST_USER_EMAIL,
-      password: process.env.TEST_USER_PASSWORD,
+      email: TEST_USER_EMAIL,
+      password: TEST_USER_PASSWORD,
     });
 
   cookie = res.headers["set-cookie"];
@@ -21,7 +50,7 @@ test("POST /login - Devrait échouer avec un mauvais mot de passe", async () => 
   const res = await request(app)
     .post("/api/auth/login")
     .send({
-      email: process.env.TEST_USER_EMAIL,
+      email: TEST_USER_EMAIL,
       password: "wrongPassword123",
     });
 
@@ -51,7 +80,7 @@ test("POST /login - Devrait échouer si des champs sont manquants", async () => 
 test("POST /register - Devrait échouer si l'email est déjà utilisé", async () => {
   const existingUser = {
     username: 'DuplicateUser',
-    email: process.env.TEST_USER_EMAIL,
+    email: TEST_USER_EMAIL,
     password: 'password123',
     firstName: 'John',
     lastName: 'Doe'
@@ -153,10 +182,10 @@ describe("Courses API (/api/courses)", () => {
       const newCourse = {
         startTime: "2024-10-20T08:00:00Z",
         endTime: "2024-10-20T10:00:00Z",
-        roomId: 1,
-        subjectId: 3,
-        teacherId: 2,
-        gradeId: 2
+        roomId: courseFixtures.roomId,
+        subjectId: courseFixtures.subjectId,
+        teacherId: courseFixtures.teacherId,
+        gradeId: courseFixtures.gradeId
       };
 
       const res = await request(app)
@@ -173,13 +202,13 @@ describe("Courses API (/api/courses)", () => {
   describe("GET /:type/:id", () => {
     test("Devrait récupérer les cours d'un enseignant (teacher)", async () => {
       const res = await request(app)
-        .get("/api/courses/teacher/1")
+        .get(`/api/courses/teacher/${courseFixtures.teacherId}`)
         .set("Cookie", cookie);
 
       expect(res.statusCode).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
       if (res.body.length > 0) {
-        expect(res.body[0].teacherId).toBe(1);
+        expect(res.body[0].teacherId).toBe(courseFixtures.teacherId);
       }
     });
 
@@ -188,7 +217,7 @@ describe("Courses API (/api/courses)", () => {
       const end = "2024-10-31";
       
       const res = await request(app)
-        .get(`/api/courses/grade/1?startDate=${start}&endDate=${end}`)
+        .get(`/api/courses/grade/${courseFixtures.gradeId}?startDate=${start}&endDate=${end}`)
         .set("Cookie", cookie);
 
       expect(res.statusCode).toBe(200);

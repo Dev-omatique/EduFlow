@@ -420,7 +420,7 @@ export default function AttendancePlanningPage() {
                                   Vérification...
                                 </Badge>
                               ) : hasAttendance ? (
-                                <Badge className="gap-1.5 font-medium bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/15">
+                                <Badge className="gap-1.5 border-success/30 bg-success/15 font-medium text-success hover:bg-success/15">
                                   <ClipboardCheck className="h-3.5 w-3.5" />
                                   Appel fait
                                 </Badge>
