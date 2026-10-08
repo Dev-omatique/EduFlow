@@ -1,7 +1,7 @@
 "use client";
 
 import RoleGuard from "@/components/auth/RoleGuard";
-import CalendarWidget from "@/components/dashboard/CalendarWidget";
+import TodayAbsencesWidget from "@/components/dashboard/TodayAbsencesWidget";
 import NewsWidget from "@/components/dashboard/NewsWidget";
 
 export default function DashboardPage() {
@@ -25,7 +25,7 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
             <div className="space-y-6">
-              <CalendarWidget />
+              <TodayAbsencesWidget />
             </div>
 
             <div className="space-y-6">
