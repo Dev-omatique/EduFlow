@@ -10,6 +10,7 @@ import cors from 'cors'
 import indexRouter from './routes/index.js';
 import errorHandler from './middlewares/errorHandler.js';
 import swaggerUi from "swagger-ui-express";
+import helmet from 'helmet';
 import fs from "fs";
 import YAML from 'js-yaml';
 
@@ -25,7 +26,11 @@ const openapiPath = join(__dirname, "docs", "openapi.yml");
 const fileContents = fs.readFileSync(openapiPath, "utf8");
 const swaggerConfig = YAML.load(fileContents);
 
-app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
+if (process.env.NODE_ENV !== "production") {
+  app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerConfig));
+}
+
+app.use(helmet());
 app.use(logger('dev'));
 app.use(cors({
     origin: process.env.FRONTEND_URL,
