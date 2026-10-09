@@ -42,10 +42,10 @@ export default function RegisterPage() {
     if (username.length < 3) { setError("Le nom d'utilisateur doit faire au moins 3 caractères."); return; }
     if (firstName.length < 2) { setError("Le prénom doit faire au moins 2 caractères."); return; }
     if (lastName.length < 2) { setError("Le nom doit faire au moins 2 caractères."); return; }
-    if (password.length < 6) { setError("Le mot de passe doit faire au moins 6 caractères."); return; }
+    if (password.length < 8 || !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password)) {
+      setError("Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, une minuscule et un chiffre.");return;}
     if (password !== confirmPassword) { setError("Les mots de passe ne correspondent pas."); return; }
     if (new Date(birthDate) >= new Date()) { setError("La date de naissance doit être dans le passé."); return; }
-
     try {
       setLoading(true);
       const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -61,7 +61,7 @@ export default function RegisterPage() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.message || "Erreur lors de l'inscription");
 
-      router.push("/dashboard");
+      router.push("/auth/login");
     } catch (err: any) {
       setError(err.message || "Une erreur est survenue.");
     } finally {
