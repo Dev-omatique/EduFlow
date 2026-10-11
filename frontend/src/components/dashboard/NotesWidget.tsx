@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, AlertCircle, GraduationCap, Award, Calendar } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -48,6 +49,69 @@ function formatNoteDate(dateStr: string) {
     month: "2-digit",
     year: "numeric",
   });
+}
+
+function NotesWidgetContent({ error, notes }: { error: string; notes: NoteBackend[] }) {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (notes.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center text-muted-foreground">
+        <Award className="h-8 w-8 stroke-1 text-muted-foreground/60 mb-2" />
+        <p className="text-sm font-medium">Aucune note disponible pour le moment.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {notes.map((note) => {
+        const gradeVal = Number.parseFloat(note.grade);
+        const maxVal = note.Exam?.maxNotes ? Number.parseFloat(note.Exam.maxNotes) : 20;
+
+        return (
+          <div
+            key={note.id}
+            className="flex items-center justify-between rounded-lg border bg-muted/30 p-3.5 transition-colors hover:bg-muted/50"
+          >
+            <div className="space-y-1">
+              <p className="text-sm font-bold text-foreground">
+                {note.Exam?.Subject?.type || "Matière"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {note.Exam?.title || "Évaluation"}
+              </p>
+              <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {formatNoteDate(note.createdAt)}
+                </span>
+                <span>•</span>
+                <span>Coef. {note.Exam?.coefficient ?? 1}</span>
+              </div>
+            </div>
+
+            <div className="text-right">
+              <Badge variant="secondary" className="px-3 py-1 text-sm font-bold">
+                {gradeVal.toFixed(1)}{" "}
+                <span className="text-xs font-normal text-muted-foreground">
+                  /{maxVal}
+                </span>
+              </Badge>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export default function NotesWidget() {
@@ -98,75 +162,30 @@ export default function NotesWidget() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg font-bold">Notes récentes</CardTitle>
-            <CardDescription className="mt-1">
-              Vos 5 dernières évaluations
-            </CardDescription>
+    <Link
+      href="/notes/mynotes"
+      aria-label="Voir toutes mes notes"
+      className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <Card className="cursor-pointer transition-colors hover:border-primary/60">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-bold">Notes récentes</CardTitle>
+              <CardDescription className="mt-1">
+                Vos 5 dernières évaluations
+              </CardDescription>
+            </div>
+            <div className="rounded-full bg-primary/10 p-2 text-primary">
+              <GraduationCap className="h-5 w-5" />
+            </div>
           </div>
-          <div className="rounded-full bg-primary/10 p-2 text-primary">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-        </div>
-      </CardHeader>
+        </CardHeader>
 
-      <CardContent className="space-y-3">
-        {error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erreur</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : notes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center text-muted-foreground">
-            <Award className="h-8 w-8 stroke-1 text-muted-foreground/60 mb-2" />
-            <p className="text-sm font-medium">Aucune note disponible pour le moment.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {notes.map((note) => {
-              const gradeVal = Number.parseFloat(note.grade);
-              const maxVal = note.Exam?.maxNotes ? Number.parseFloat(note.Exam.maxNotes) : 20;
-
-              return (
-                <div
-                  key={note.id}
-                  className="flex items-center justify-between rounded-lg border bg-muted/30 p-3.5 transition-colors hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-foreground">
-                      {note.Exam?.Subject?.type || "Matière"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {note.Exam?.title || "Évaluation"}
-                    </p>
-                    <div className="flex items-center gap-2 pt-1 text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {formatNoteDate(note.createdAt)}
-                      </span>
-                      <span>•</span>
-                      <span>Coef. {note.Exam?.coefficient ?? 1}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <Badge variant="secondary" className="px-3 py-1 text-sm font-bold">
-                      {gradeVal.toFixed(1)}{" "}
-                      <span className="text-xs font-normal text-muted-foreground">
-                        /{maxVal}
-                      </span>
-                    </Badge>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <CardContent className="space-y-3">
+          <NotesWidgetContent error={error} notes={notes} />
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, type ReactNode } from "react";
-import { AlertCircle, FileText, ShieldAlert } from "lucide-react";
+import { AlertCircle, FileText, ShieldAlert, Users, User, ListChecks } from "lucide-react";
 
 import { useAuth } from "@/context/AuthContext";
 import Sidebar from "@/components/layout/Sidebar";
@@ -43,7 +43,8 @@ type NoteBackend = {
     title: string;
     dueDate?: string | null;
     maxNotes: string;
-    coefficient: number;
+    coefficient: number | null;
+    isGraded?: boolean | null;
     Subject: {
       id: number;
       type: string;
@@ -61,6 +62,23 @@ type NoteBackend = {
 type SubjectNotes = {
   subject: string;
   notes: NoteBackend[];
+  studentAverage: number | null;
+  classAverage: number | null;
+};
+
+// Statistiques agrégées d'un examen, calculées par l'API (aucune note individuelle).
+type ClassStats = {
+  average: number;
+  min: number;
+  max: number;
+  count: number;
+};
+
+type Report = {
+  subjects: SubjectNotes[];
+  studentAverage: number | null;
+  classAverage: number | null;
+  countedNotes: number;
 };
 
 type AcademicPeriod = {
@@ -116,6 +134,159 @@ async function getAcademicPeriods(): Promise<AcademicPeriod[]> {
 
   if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
   return response.json();
+}
+
+async function getExamClassStats(examId: number): Promise<ClassStats> {
+  const response = await fetch(`${API_BASE_URL}/api/notes/exam/${examId}/stats`, {
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+  return response.json();
+}
+
+// ---------------------------------------------------------------------------
+// Calcul des moyennes
+// ---------------------------------------------------------------------------
+//
+// Règles :
+// - toutes les notes sont ramenées sur 20 (note / barème × 20) ;
+// - la moyenne d'une matière est pondérée par le coefficient de chaque examen ;
+// - la moyenne générale est la moyenne des moyennes par matière ;
+// - les examens non notés (isGraded à false, barème nul) ou de coefficient 0
+//   ne sont pas pris en compte ;
+// - la moyenne de classe d'une matière utilise la moyenne de classe de chaque
+//   examen, fournie par l'API sous forme agrégée, avec les mêmes coefficients.
+
+const GRADE_SCALE = 20;
+
+type WeightedValue = { value: number; weight: number };
+
+function getMaxNotes(note: NoteBackend): number {
+  return Number.parseFloat(note.Exam?.maxNotes ?? "");
+}
+
+function getCoefficient(note: NoteBackend): number {
+  const coefficient = note.Exam?.coefficient;
+  // Un examen sans coefficient renseigné compte pour 1.
+  if (coefficient === null || coefficient === undefined) return 1;
+  return Number(coefficient);
+}
+
+function isCountedNote(note: NoteBackend): boolean {
+  const maxNotes = getMaxNotes(note);
+  const grade = Number.parseFloat(note.grade);
+  const coefficient = getCoefficient(note);
+
+  return (
+    note.Exam?.isGraded !== false &&
+    Number.isFinite(maxNotes) &&
+    maxNotes > 0 &&
+    Number.isFinite(grade) &&
+    Number.isFinite(coefficient) &&
+    coefficient > 0
+  );
+}
+
+function toScale(value: number, maxNotes: number): number {
+  return (value / maxNotes) * GRADE_SCALE;
+}
+
+function weightedAverage(values: WeightedValue[]): number | null {
+  const totalWeight = values.reduce((total, item) => total + item.weight, 0);
+  if (totalWeight <= 0) return null;
+
+  return values.reduce((total, item) => total + item.value * item.weight, 0) / totalWeight;
+}
+
+function mean(values: Array<number | null>): number | null {
+  const numbers = values.filter((value): value is number => value !== null);
+  if (numbers.length === 0) return null;
+
+  return numbers.reduce((total, value) => total + value, 0) / numbers.length;
+}
+
+function buildReport(
+  notes: NoteBackend[],
+  classStats: Record<number, ClassStats | null>,
+): Report {
+  const groupedNotes = new Map<string, NoteBackend[]>();
+
+  notes.forEach((note) => {
+    const subjectName = note.Exam?.Subject?.type || "Matière inconnue";
+    const subjectNotes = groupedNotes.get(subjectName) ?? [];
+
+    subjectNotes.push(note);
+    groupedNotes.set(subjectName, subjectNotes);
+  });
+
+  const subjects = Array.from(groupedNotes.entries())
+    .map(([subject, subjectNotes]) => {
+      const countedNotes = subjectNotes.filter(isCountedNote);
+
+      const studentAverage = weightedAverage(
+        countedNotes.map((note) => ({
+          value: toScale(Number.parseFloat(note.grade), getMaxNotes(note)),
+          weight: getCoefficient(note),
+        }))
+      );
+
+      const classAverage = weightedAverage(
+        countedNotes.flatMap((note) => {
+          const stats = classStats[note.examId];
+          if (!stats || stats.count === 0) return [];
+
+          return [{
+            value: toScale(Number(stats.average), getMaxNotes(note)),
+            weight: getCoefficient(note),
+          }];
+        })
+      );
+
+      return {
+        subject,
+        notes: [...subjectNotes].sort(
+          (firstNote, secondNote) =>
+            new Date(secondNote.createdAt).getTime() -
+            new Date(firstNote.createdAt).getTime()
+        ),
+        studentAverage,
+        classAverage,
+      };
+    })
+    .sort((firstSubject, secondSubject) =>
+      firstSubject.subject.localeCompare(secondSubject.subject, "fr")
+    );
+
+  return {
+    subjects,
+    studentAverage: mean(subjects.map((subject) => subject.studentAverage)),
+    classAverage: mean(subjects.map((subject) => subject.classAverage)),
+    countedNotes: notes.filter(isCountedNote).length,
+  };
+}
+
+function formatAverage(value: number | null): string {
+  if (value === null) return "—";
+
+  return `${value.toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}/20`;
+}
+
+function formatGap(studentAverage: number | null, classAverage: number | null): string | null {
+  if (studentAverage === null || classAverage === null) return null;
+
+  const gap = studentAverage - classAverage;
+  const formatted = Math.abs(gap).toLocaleString("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  if (Math.abs(gap) < 0.005) return "Égale à la moyenne de la classe";
+  return `${gap > 0 ? "+" : "−"}${formatted} pt par rapport à la classe`;
 }
 
 // ---------------------------------------------------------------------------
@@ -183,7 +354,7 @@ function useNotes(
       }
     }
 
-    loadNotes();
+    void loadNotes();
 
     return () => {
       cancelled = true;
@@ -195,6 +366,63 @@ function useNotes(
     loading,
     error,
   };
+}
+
+// Charge, en parallèle, les statistiques agrégées de chaque examen noté de l'élève.
+// Une statistique indisponible n'empêche pas l'affichage : elle est ignorée.
+function useClassStats(notes: NoteBackend[]) {
+  const [classStats, setClassStats] = useState<Record<number, ClassStats | null>>({});
+  const [loading, setLoading] = useState(false);
+
+  const examIdsKey = useMemo(
+    () =>
+      Array.from(new Set(notes.filter(isCountedNote).map((note) => note.examId)))
+        .sort((firstId, secondId) => firstId - secondId)
+        .join(","),
+    [notes]
+  );
+
+  useEffect(() => {
+    const examIds = examIdsKey ? examIdsKey.split(",").map(Number) : [];
+    let cancelled = false;
+
+    async function loadClassStats() {
+      if (examIds.length === 0) {
+        setClassStats({});
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+
+      const results = await Promise.allSettled(
+        examIds.map((examId) => getExamClassStats(examId))
+      );
+
+      if (cancelled) return;
+
+      const statsByExam: Record<number, ClassStats | null> = {};
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          statsByExam[examIds[index]] = result.value;
+        } else {
+          console.error("Erreur statistiques de classe :", result.reason);
+          statsByExam[examIds[index]] = null;
+        }
+      });
+
+      setClassStats(statsByExam);
+      setLoading(false);
+    }
+
+    void loadClassStats();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [examIdsKey]);
+
+  return { classStats, loading };
 }
 
 // ---------------------------------------------------------------------------
@@ -229,32 +457,91 @@ function NotesPageSkeleton() {
 // Relevé de notes
 // ---------------------------------------------------------------------------
 
-function ReportCardTable({ notes }: { notes: NoteBackend[] }) {
-  const subjects = useMemo<SubjectNotes[]>(() => {
-    const groupedNotes = new Map<string, NoteBackend[]>();
+function AverageCard({
+  title,
+  value,
+  detail,
+  icon,
+  loading = false,
+}: {
+  title: string;
+  value: string;
+  detail: string | null;
+  icon: ReactNode;
+  loading?: boolean;
+}) {
+  return (
+    <Card>
+      <CardContent className="flex items-start gap-4 p-5">
+        <div className="rounded-lg bg-primary/10 p-2.5 text-primary">{icon}</div>
 
-    notes.forEach((note) => {
-      const subjectName = note.Exam?.Subject?.type || "Matière inconnue";
-      const subjectNotes = groupedNotes.get(subjectName) ?? [];
+        <div className="min-w-0">
+          <p className="text-sm text-muted-foreground">{title}</p>
 
-      subjectNotes.push(note);
-      groupedNotes.set(subjectName, subjectNotes);
-    });
+          {loading ? (
+            <Skeleton className="mt-1 h-8 w-24" />
+          ) : (
+            <p className="mt-0.5 text-2xl font-bold tracking-tight">{value}</p>
+          )}
 
-    return Array.from(groupedNotes.entries())
-      .map(([subject, subjectNotes]) => ({
-        subject,
-        notes: subjectNotes.sort(
-          (firstNote, secondNote) =>
-            new Date(secondNote.createdAt).getTime() -
-            new Date(firstNote.createdAt).getTime()
-        ),
-      }))
-      .sort((firstSubject, secondSubject) =>
-        firstSubject.subject.localeCompare(secondSubject.subject, "fr")
-      );
-  }, [notes]);
+          {detail && (
+            <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
+function AverageSummary({
+  report,
+  periodLabel,
+  classLoading,
+}: {
+  report: Report;
+  periodLabel: string;
+  classLoading: boolean;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <AverageCard
+        title="Ma moyenne générale"
+        value={formatAverage(report.studentAverage)}
+        detail={
+          classLoading
+            ? periodLabel
+            : formatGap(report.studentAverage, report.classAverage) ?? periodLabel
+        }
+        icon={<User className="h-5 w-5" />}
+      />
+
+      <AverageCard
+        title="Moyenne de la classe"
+        value={formatAverage(report.classAverage)}
+        detail={periodLabel}
+        icon={<Users className="h-5 w-5" />}
+        loading={classLoading}
+      />
+
+      <AverageCard
+        title="Notes prises en compte"
+        value={String(report.countedNotes)}
+        detail={`${report.subjects.length} matière${report.subjects.length > 1 ? "s" : ""}`}
+        icon={<ListChecks className="h-5 w-5" />}
+      />
+    </div>
+  );
+}
+
+function ReportCardTable({
+  notes,
+  subjects,
+  classLoading,
+}: {
+  notes: NoteBackend[];
+  subjects: SubjectNotes[];
+  classLoading: boolean;
+}) {
   if (subjects.length === 0) {
     return (
       <Card>
@@ -264,7 +551,7 @@ function ReportCardTable({ notes }: { notes: NoteBackend[] }) {
           <p className="font-medium">Aucune note disponible.</p>
 
           <p className="mt-1 text-sm text-muted-foreground">
-            Les notes de l'élève apparaîtront ici.
+            Les notes de l&apos;élève apparaîtront ici.
           </p>
         </CardContent>
       </Card>
@@ -309,6 +596,26 @@ function ReportCardTable({ notes }: { notes: NoteBackend[] }) {
                       {subject.notes.length} note
                       {subject.notes.length > 1 ? "s" : ""}
                     </p>
+
+                    <div className="mt-3 space-y-1 text-sm">
+                      <p className="flex items-baseline justify-between gap-3">
+                        <span className="text-muted-foreground">Ma moyenne</span>
+                        <span className="font-semibold text-primary">
+                          {formatAverage(subject.studentAverage)}
+                        </span>
+                      </p>
+
+                      <p className="flex items-baseline justify-between gap-3">
+                        <span className="text-muted-foreground">Classe</span>
+                        {classLoading ? (
+                          <Skeleton className="h-4 w-14" />
+                        ) : (
+                          <span className="font-medium">
+                            {formatAverage(subject.classAverage)}
+                          </span>
+                        )}
+                      </p>
+                    </div>
                   </td>
 
                   <td className="px-6 py-5">
@@ -359,6 +666,16 @@ export default function MyNotesPage() {
   const { notes, loading, error } = useNotes(user, selectedTerm);
   const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([]);
   const [periodsError, setPeriodsError] = useState<string | null>(null);
+  const { classStats, loading: classLoading } = useClassStats(notes);
+
+  const report = useMemo(() => buildReport(notes, classStats), [notes, classStats]);
+
+  const periodLabel = useMemo(() => {
+    if (selectedTerm === "all") return "Toutes les périodes";
+
+    const period = academicPeriods.find((term) => String(term.id) === selectedTerm);
+    return period ? `${period.label} · ${period.schoolYear}` : "Période sélectionnée";
+  }, [academicPeriods, selectedTerm]);
 
   useEffect(() => {
     if (!user) return;
@@ -455,7 +772,19 @@ export default function MyNotesPage() {
           </Alert>
         )}
 
-        <ReportCardTable notes={notes} />
+        {report.subjects.length > 0 && (
+          <AverageSummary
+            report={report}
+            periodLabel={periodLabel}
+            classLoading={classLoading}
+          />
+        )}
+
+        <ReportCardTable
+          notes={notes}
+          subjects={report.subjects}
+          classLoading={classLoading}
+        />
       </div>
     </PageShell>
   );
