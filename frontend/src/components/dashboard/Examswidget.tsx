@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, AlertCircle, CheckCircle2, BookOpen, ClipboardList } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -76,6 +77,68 @@ function isUpcoming(exam: ExamItem) {
   return new Date(exam.dueDate) >= today;
 }
 
+// Contenu du widget selon l'état : erreur, aucun devoir ou liste des prochains devoirs.
+function ExamsWidgetContent({ error, exams }: { error: string | null; exams: ExamItem[] }) {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Erreur</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (exams.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center text-muted-foreground">
+        <CheckCircle2 className="h-8 w-8 stroke-1 text-success mb-2" />
+        <p className="text-sm font-medium">Aucun devoir à venir.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {exams.map((exam) => (
+        <div
+          key={exam.id}
+          className="flex items-center justify-between rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="rounded-full bg-primary/10 p-2 text-primary">
+              {exam.isGraded ? (
+                <ClipboardList className="h-4 w-4" />
+              ) : (
+                <BookOpen className="h-4 w-4" />
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">{exam.title}</p>
+              <p className="text-xs text-muted-foreground">
+                {exam.Subject?.type || "Matière"}
+                {exam.Grade?.name ? ` — ${exam.Grade.name}` : ""}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-right space-y-1">
+            <p className="text-xs font-medium text-muted-foreground">
+              {formatDate(exam.dueDate)}
+            </p>
+            {exam.isGraded && (
+              <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                Évaluation
+              </Badge>
+            )}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 export default function ExamsWidget() {
   const { user, isLoading } = useAuth();
   const [exams, setExams] = useState<ExamItem[]>([]);
@@ -111,7 +174,7 @@ export default function ExamsWidget() {
       }
     };
 
-    load();
+    void load();
   }, [isLoading, user]);
 
   if (isLoading || loading) {
@@ -126,62 +189,21 @@ export default function ExamsWidget() {
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-bold">Devoirs à faire</CardTitle>
-        <CardDescription>Vos prochains devoirs et évaluations</CardDescription>
-      </CardHeader>
+    <Link
+      href="/myexams"
+      aria-label="Voir tous mes devoirs à venir"
+      className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      <Card className="cursor-pointer transition-colors hover:border-primary/60">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-bold">Devoirs à faire</CardTitle>
+          <CardDescription>Vos prochains devoirs et évaluations</CardDescription>
+        </CardHeader>
 
-      <CardContent className="space-y-3">
-        {error ? (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Erreur</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : exams.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-6 text-center text-muted-foreground">
-            <CheckCircle2 className="h-8 w-8 stroke-1 text-success mb-2" />
-            <p className="text-sm font-medium">Aucun devoir à venir.</p>
-          </div>
-        ) : (
-          exams.map((exam) => (
-            <div
-              key={exam.id}
-              className="flex items-center justify-between rounded-lg border bg-muted/30 p-3 transition-colors hover:bg-muted/50"
-            >
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-primary/10 p-2 text-primary">
-                  {exam.isGraded ? (
-                    <ClipboardList className="h-4 w-4" />
-                  ) : (
-                    <BookOpen className="h-4 w-4" />
-                  )}
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold">{exam.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {exam.Subject?.type || "Matière"}
-                    {exam.Grade?.name ? ` — ${exam.Grade.name}` : ""}
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right space-y-1">
-                <p className="text-xs font-medium text-muted-foreground">
-                  {formatDate(exam.dueDate)}
-                </p>
-                {exam.isGraded && (
-                  <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    Évaluation
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </CardContent>
-    </Card>
+        <CardContent className="space-y-3">
+          <ExamsWidgetContent error={error} exams={exams} />
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
