@@ -217,7 +217,7 @@ export default function TodayAbsencesWidget({ showFilters = false }: Readonly<{ 
       return (
         <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center text-muted-foreground">
           <CheckCircle2 className="mb-2 h-8 w-8 stroke-1 text-primary" />
-          <p className="text-sm font-medium">Aucun élève absent déclaré aujourd&apos;hui.</p>
+          <p className="text-sm font-medium">Aucun élève absent déclaré.</p>
         </div>
       );
     }
@@ -249,7 +249,7 @@ export default function TodayAbsencesWidget({ showFilters = false }: Readonly<{ 
         <div className="flex items-center justify-between gap-3">
           <div>
             <CardTitle className="text-lg font-bold">
-              {showFilters ? "Suivi des absences" : "Élèves absents aujourd&apos;hui"}
+              {showFilters ? "Suivi des absences" : "Élèves absents aujourd'hui"}
             </CardTitle>
             <CardDescription className="mt-1">
               {showFilters
