@@ -28,11 +28,12 @@ export default function DashboardPage() {
             <div className="space-y-6 xl:col-span-2">
               <CalendarWidget />
               <NotesWidget />
-              <ExamsWidget />
+      
             </div>
             <div className="space-y-6">
-              <NewsWidget />
+              <ExamsWidget />
               <AttendanceWidget />
+              <NewsWidget />
             </div>
           </div>
         </div>
